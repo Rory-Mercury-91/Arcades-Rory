@@ -66,8 +66,10 @@ jobs:
           fs.writeFileSync(confPath, JSON.stringify(conf, null, 2) + "\n");
           function replaceVersion(path, pattern) {
             const text = fs.readFileSync(path, "utf8");
-            const next = text.replace(pattern, "$1" + version + "$2");
-            if (next === text) throw new Error("Version introuvable dans " + path);
+            if (!pattern.test(text)) throw new Error("Version introuvable dans " + path);
+            const next = text.replace(pattern, function (_match, start, end) {
+              return start + version + end;
+            });
             fs.writeFileSync(path, next);
           }
           replaceVersion("package.json", /("version": ")[^"]+(")/);
