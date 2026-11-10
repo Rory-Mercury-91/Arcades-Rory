@@ -3,5 +3,14 @@
   "identifier": "default",
   "description": "Fenêtre de la feuille de Yams",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    "updater:default",
+    "process:default",
+    "opener:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [{ "url": "https://*", "app": true }]
+    }
+  ]
 }

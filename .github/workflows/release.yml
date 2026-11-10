@@ -1,0 +1,250 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  NDK_VERSION: "27.2.12479018"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop:
+    name: Desktop (Windows + latest.json)
+    runs-on: windows-latest
+    outputs:
+      releaseId: ${{ steps.tauri.outputs.releaseId }}
+      appVersion: ${{ steps.tauri.outputs.appVersion }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Verifier le secret de signature Tauri
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::TAURI_SIGNING_PRIVATE_KEY est vide ou absent."
+            exit 1
+          fi
+          echo "TAURI_SIGNING_PRIVATE_KEY present (${#TAURI_SIGNING_PRIVATE_KEY} caracteres)."
+
+      - name: Ecrire la configuration de l'application
+        shell: bash
+        env:
+          YAMS_SUPABASE_URL: ${{ secrets.YAMS_SUPABASE_URL }}
+          YAMS_SUPABASE_ANON_KEY: ${{ secrets.YAMS_SUPABASE_ANON_KEY }}
+          YAMS_ADMIN_PASSWORD: ${{ secrets.YAMS_ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$YAMS_SUPABASE_URL" ] || [ -z "$YAMS_SUPABASE_ANON_KEY" ]; then
+            echo "::error::YAMS_SUPABASE_URL ou YAMS_SUPABASE_ANON_KEY absent dans les secrets GitHub."
+            exit 1
+          fi
+          node <<'EOF'
+          const fs = require("fs");
+          const line = (name) => "window." + name + " = " + JSON.stringify(process.env[name] || "") + ";\n";
+          fs.writeFileSync("web/yams-config.js",
+            line("YAMS_SUPABASE_URL") +
+            line("YAMS_SUPABASE_ANON_KEY") +
+            line("YAMS_ADMIN_PASSWORD"));
+          EOF
+
+      - name: Compiler et publier la release desktop
+        id: tauri
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Yams v__VERSION__
+          releaseBody: |
+            ## Yams v__VERSION__
+
+            - **Windows** : installateur NSIS (`.exe`) et version portable (`.zip`)
+            - **Android** : APK universel signe (voir asset `Yams_*_android-universal.apk`)
+
+            Les mises a jour Windows passent par `latest.json`. Sur le telephone, le bandeau ouvre le telechargement de l'APK.
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: --bundles nsis
+
+      - name: Creer l'archive portable Windows
+        id: portable
+        shell: pwsh
+        run: |
+          $version = "${{ steps.tauri.outputs.appVersion }}"
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          }
+          $exe = Join-Path $PWD "src-tauri/target/release/yams.exe"
+          if (-not (Test-Path $exe)) {
+            Write-Error "Binaire portable introuvable : $exe"
+            exit 1
+          }
+          $zipName = "Yams_${version}_windows-portable.zip"
+          if (Test-Path $zipName) { Remove-Item $zipName -Force }
+          Compress-Archive -Path $exe -DestinationPath $zipName -Force
+          "zipName=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Joindre le portable a la release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.tauri.outputs.appVersion }}
+          files: ${{ steps.portable.outputs.zipName }}
+          fail_on_unmatched_files: true
+
+  build-android:
+    name: Android (APK signe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+
+      - name: Installer le NDK Android
+        run: sdkmanager "ndk;${{ env.NDK_VERSION }}"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: >-
+            aarch64-linux-android,
+            armv7-linux-androideabi,
+            i686-linux-android,
+            x86_64-linux-android
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Initialiser le projet Android Tauri
+        run: test -f src-tauri/gen/android/settings.gradle || npm run android:init -- --ci
+
+      - name: Ecrire la configuration de l'application
+        shell: bash
+        env:
+          YAMS_SUPABASE_URL: ${{ secrets.YAMS_SUPABASE_URL }}
+          YAMS_SUPABASE_ANON_KEY: ${{ secrets.YAMS_SUPABASE_ANON_KEY }}
+          YAMS_ADMIN_PASSWORD: ${{ secrets.YAMS_ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$YAMS_SUPABASE_URL" ] || [ -z "$YAMS_SUPABASE_ANON_KEY" ]; then
+            echo "::error::YAMS_SUPABASE_URL ou YAMS_SUPABASE_ANON_KEY absent dans les secrets GitHub."
+            exit 1
+          fi
+          node <<'EOF'
+          const fs = require("fs");
+          const line = (name) => "window." + name + " = " + JSON.stringify(process.env[name] || "") + ";\n";
+          fs.writeFileSync("web/yams-config.js",
+            line("YAMS_SUPABASE_URL") +
+            line("YAMS_SUPABASE_ANON_KEY") +
+            line("YAMS_ADMIN_PASSWORD"));
+          EOF
+
+      - name: Verifier les secrets Android
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 absent - APK release non signe."
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_BASE64 present (${#ANDROID_KEYSTORE_BASE64} caracteres)."
+
+      - name: Configurer la signature Android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "${{ github.workspace }}/yams-release.jks"
+          {
+            echo "password=${ANDROID_KEYSTORE_PASSWORD}"
+            echo "keyAlias=${ANDROID_KEY_ALIAS}"
+            echo "storeFile=${{ github.workspace }}/yams-release.jks"
+          } > src-tauri/gen/android/keystore.properties
+
+      - name: Compiler l'APK Android
+        run: npm run build:android -- --apk
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+
+      - name: Publier l'APK en artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yams-android-apk
+          if-no-files-found: error
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+
+  attach-android:
+    name: Joindre l'APK a la release GitHub
+    needs: [build-desktop, build-android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: yams-android-apk
+          path: apk
+
+      - name: Determiner la version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Renommer l'APK
+        run: |
+          APK=$(find apk -name "app-universal-release.apk" -type f | head -n 1)
+          if [ -z "$APK" ]; then
+            APK=$(find apk -name "*.apk" -type f | head -n 1)
+          fi
+          if [ -z "$APK" ]; then
+            echo "Aucun APK trouve"
+            exit 1
+          fi
+          cp "$APK" "Yams_${{ steps.version.outputs.version }}_android-universal.apk"
+
+      - name: Joindre l'APK a la release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: Yams_${{ steps.version.outputs.version }}_android-universal.apk
+          fail_on_unmatched_files: true
