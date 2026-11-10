@@ -1,0 +1,24 @@
+---
+description: Français pour l'interface, les commentaires et les échanges
+alwaysApply: true
+---
+
+# Français
+
+Les pages sont en `lang="fr"`. Textes visibles, `aria-label`, messages d'erreur, journaux et commentaires de code sont en français.
+
+Les noms de variables, fonctions, classes, types et constantes restent en anglais.
+
+```javascript
+// À éviter
+button.setAttribute("aria-label", "Reset the game");
+// score du joueur
+const scoreJoueur = 0;
+
+// Attendu
+button.setAttribute("aria-label", "Remettre à zéro");
+// Score du joueur
+const playerScore = 0;
+```
+
+Les réponses à l'utilisateur sont en français. Un nouveau jeu suit le même vocabulaire que les pages existantes : table, code, tour, partie.

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Jeux</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app"></main>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script>Arcade.mountDoor();</script>
+</body>
+</html>

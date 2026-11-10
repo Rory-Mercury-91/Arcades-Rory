@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Mastermind</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+  <section id="play" class="hidden">
+    <div class="help-row">
+      <p class="status" id="status"></p>
+      <button type="button" class="help-btn" id="hint-help" aria-expanded="false" aria-label="Lire les indices">?</button>
+    </div>
+    <p class="legend" id="hint-legend" hidden>Pion rouge : bonne couleur et bien placée. Pion blanc : bonne couleur, mal placée. L'ordre de ces pions ne désigne pas une case.</p>
+    <div id="history"></div>
+    <div id="reveal" class="pegs"></div>
+    <div class="row" id="draft"></div>
+    <div class="row" id="palette"></div>
+    <div class="stack" style="margin-top:12px">
+      <button type="button" class="primary" id="send">Valider</button>
+      <button type="button" id="again">Rejouer</button>
+      <button type="button" class="ghost" id="leave">Quitter</button>
+    </div>
+  </section>
+  </main>
+  <div class="overlay hidden" id="pass">
+    <div class="card">
+      <strong>Passe le téléphone</strong>
+      <p id="pass-copy"></p>
+      <button type="button" class="primary" id="pass-ok">Je suis prêt</button>
+    </div>
+  </div>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script src="mastermind.js"></script>
+</body>
+</html>

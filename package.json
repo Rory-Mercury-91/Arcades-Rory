@@ -1,0 +1,14 @@
+{
+  "name": "yams",
+  "private": true,
+  "version": "0.1.19",
+  "description": "Feuille de Yams. La table partagée est propre à cette application.",
+  "scripts": {
+    "tauri": "tauri",
+    "android:init": "tauri android init",
+    "build:android": "tauri android build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

@@ -1,0 +1,5 @@
+node_modules
+.env
+web/yams-config.js
+src-tauri/target
+Apk

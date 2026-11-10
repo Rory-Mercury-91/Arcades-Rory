@@ -1,0 +1,72 @@
+/* Profil de couleur commun. Un changement ici s'applique à tous les jeux. */
+
+:root {
+  color-scheme: light;
+  --bg: #efe6d8;
+  --card: #fffaf3;
+  --ink: #241c16;
+  --muted: #6f6256;
+  --line: #e4d7c6;
+  --accent: #8e2f2f;
+  --accent-ink: #fffaf3;
+  --total-bg: #f4ece1;
+  --up: #1f6b45;
+  --sticky: rgba(239, 230, 216, 0.94);
+  --score-bg: #241c16;
+  --score-ink: #fffaf3;
+  --bonus: #8a6232;
+  --bonus-bg: #f8f1df;
+  --input-bg: #fff;
+  --input-ink: #241c16;
+  --shadow: 0 12px 32px rgba(48, 28, 12, 0.06);
+  --placeholder: #b7a898;
+  --leader: #c6a15b;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171410;
+  --card: #241e18;
+  --ink: #f4ecdf;
+  --muted: #b5a696;
+  --line: #3c322a;
+  --accent: #e07a6a;
+  --accent-ink: #1a1210;
+  --total-bg: #2c241c;
+  --up: #8dcea0;
+  --sticky: rgba(23, 20, 16, 0.94);
+  --score-bg: #f4ecdf;
+  --score-ink: #1a1410;
+  --bonus: #e2b56a;
+  --bonus-bg: #3a2e1a;
+  --input-bg: #14110e;
+  --input-ink: #f4ecdf;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --placeholder: #6d6258;
+  --leader: #e2b56a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #171410;
+    --card: #241e18;
+    --ink: #f4ecdf;
+    --muted: #b5a696;
+    --line: #3c322a;
+    --accent: #e07a6a;
+    --accent-ink: #1a1210;
+    --total-bg: #2c241c;
+    --up: #8dcea0;
+    --sticky: rgba(23, 20, 16, 0.94);
+    --score-bg: #f4ecdf;
+    --score-ink: #1a1410;
+    --bonus: #e2b56a;
+    --bonus-bg: #3a2e1a;
+    --input-bg: #14110e;
+    --input-ink: #f4ecdf;
+    --shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+    --placeholder: #6d6258;
+    --leader: #e2b56a;
+  }
+}

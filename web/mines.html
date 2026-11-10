@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Démineur</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+  <section id="play" class="hidden">
+    <p class="status" id="status"></p>
+    <div class="choice" id="tool">
+      <button type="button" data-tool="open" class="is-on">Ouvrir</button>
+      <button type="button" data-tool="flag">Marquer</button>
+    </div>
+    <div class="mine-board" id="grid"></div>
+    <p class="lead">Ouvrir découvre une case et passe le tour. Marquer pose une croix, sans passer le tour.</p>
+    <div class="stack" style="margin-top:12px">
+      <button type="button" id="again">Rejouer</button>
+      <button type="button" class="ghost" id="leave">Quitter</button>
+    </div>
+  </section>
+  </main>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script src="mines.js"></script>
+</body>
+</html>

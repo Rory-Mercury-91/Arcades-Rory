@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Tables</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+    <p class="lead" id="admin-error"></p>
+    <section class="admin-gate" id="missing" hidden>
+      <h2>Accès</h2>
+      <p class="lead">Le mot de passe se écrit dans le fichier .env du projet, sur la ligne YAMS_ADMIN_PASSWORD. Ensuite il faut recompiler l'application.</p>
+    </section>
+    <form class="admin-gate stack" id="login" hidden>
+      <h2>Accès</h2>
+      <p class="lead">Entre le mot de passe du fichier .env.</p>
+      <label class="field">Mot de passe<input id="login-secret" type="password" autocomplete="current-password" required></label>
+      <button type="submit" class="primary">Entrer</button>
+    </form>
+    <section id="board" hidden>
+      <p class="admin-summary"><span id="admin-count">Aucune table</span><span>Les parties finies partent seules après 30 minutes.</span></p>
+      <div id="rows" class="cards"></div>
+      <button type="button" class="primary" id="sweep" hidden>Supprimer les parties finies</button>
+    </section>
+  </main>
+  <div class="dialog is-center" id="ask" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <h2 id="ask-title">Supprimer</h2>
+      <p id="ask-text"></p>
+      <button type="button" class="btn primary" id="ask-yes">Supprimer</button>
+      <button type="button" class="btn text" id="ask-no">Annuler</button>
+    </div>
+  </div>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script>
+    Arcade.mountShell({ title: "Tables", tools: false });
+
+    const login = document.getElementById("login");
+    const board = document.getElementById("board");
+    const missing = document.getElementById("missing");
+    const errorNode = document.getElementById("admin-error");
+    const rows = document.getElementById("rows");
+    const sweep = document.getElementById("sweep");
+    let pending = null;
+
+    function expected() {
+      return String(window.YAMS_ADMIN_PASSWORD || "");
+    }
+
+    function fault(error) {
+      errorNode.textContent = error && error.message ? error.message : "";
+    }
+
+    function secret() {
+      return sessionStorage.getItem("tables-admin") || "";
+    }
+
+    function showLogin() {
+      missing.hidden = true;
+      board.hidden = true;
+      login.hidden = false;
+    }
+
+    function when(value) {
+      const delta = Date.now() - new Date(value).getTime();
+      const minutes = Math.max(0, Math.round(delta / 60000));
+      if (minutes < 1) return "à l'instant";
+      if (minutes < 60) return "il y a " + minutes + " min";
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return "il y a " + hours + " h";
+      return "il y a " + Math.round(hours / 24) + " j";
+    }
+
+    function phaseOf(table) {
+      if (table.finished || table.phase === "done") return { label: "Finie", kind: "is-done" };
+      if (table.phase === "lobby") return { label: "En attente", kind: "is-wait" };
+      return { label: "En cours", kind: "is-live" };
+    }
+
+    function paint(tables) {
+      const finished = tables.filter((table) => table.finished || table.phase === "done").length;
+      const count = document.getElementById("admin-count");
+      count.textContent = tables.length ? tables.length + (tables.length > 1 ? " tables" : " table") : "Aucune table";
+      sweep.hidden = finished === 0;
+      if (!tables.length) {
+        rows.innerHTML = `<article class="card"><span>Aucune table ouverte pour le moment.</span></article>`;
+        return;
+      }
+      rows.innerHTML = tables.map((table) => {
+        const phase = phaseOf(table);
+        const people = (table.players || []).join(" · ") || "Personne";
+        const game = Arcade.gameTitle(table.game);
+        return `<article class="card table-card">
+          <div class="table-top"><span class="table-game">${Arcade.escapeHtml(game)}</span><span class="pill ${phase.kind}">${phase.label}</span></div>
+          <p class="table-code">${Arcade.escapeHtml(table.code)}</p>
+          <p class="table-meta">${Arcade.escapeHtml(people)}</p>
+          <p class="table-meta">${Arcade.escapeHtml(when(table.seen))}</p>
+          <button type="button" class="ghost" data-game="${Arcade.escapeHtml(table.game)}" data-code="${Arcade.escapeHtml(table.code)}">Supprimer</button>
+        </article>`;
+      }).join("");
+    }
+
+    function ask(text, action) {
+      pending = action;
+      document.getElementById("ask-text").textContent = text;
+      document.getElementById("ask").hidden = false;
+    }
+
+    async function load() {
+      fault(null);
+      try {
+        const data = await Arcade.rpc("tables_admin_list", { p_secret: secret() });
+        missing.hidden = true;
+        login.hidden = true;
+        board.hidden = false;
+        paint(data.tables || []);
+      } catch (error) {
+        sessionStorage.removeItem("tables-admin");
+        showLogin();
+        fault(error);
+      }
+    }
+
+    login.addEventListener("submit", (event) => {
+      event.preventDefault();
+      fault(null);
+      const value = document.getElementById("login-secret").value;
+      if (value !== expected()) {
+        fault(new Error("Mot de passe refusé."));
+        return;
+      }
+      sessionStorage.setItem("tables-admin", value);
+      login.reset();
+      load();
+    });
+
+    sweep.onclick = () => {
+      ask("Les parties finies sont supprimées. Celles encore en cours restent.", () => {
+        return Arcade.rpc("tables_admin_sweep", { p_secret: secret() }).then(load);
+      });
+    };
+
+    rows.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-code]");
+      if (!button) return;
+      const code = button.dataset.code;
+      ask("Supprimer la table " + code + " ?", () => {
+        return Arcade.rpc("tables_admin_drop", {
+          p_secret: secret(),
+          p_game: button.dataset.game,
+          p_code: code
+        }).then(load);
+      });
+    });
+
+    document.getElementById("ask-no").onclick = () => {
+      pending = null;
+      document.getElementById("ask").hidden = true;
+    };
+    document.getElementById("ask-yes").onclick = () => {
+      const action = pending;
+      pending = null;
+      document.getElementById("ask").hidden = true;
+      if (!action) return;
+      fault(null);
+      Promise.resolve(action()).catch((error) => fault(error));
+    };
+
+    if (!Arcade.onlineOk()) {
+      errorNode.textContent = "La table en ligne n'est pas configurée sur cet appareil.";
+    } else if (!expected()) {
+      missing.hidden = false;
+    } else if (secret() === expected()) {
+      load();
+    } else {
+      sessionStorage.removeItem("tables-admin");
+      showLogin();
+    }
+  </script>
+</body>
+</html>

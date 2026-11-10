@@ -1,0 +1,29 @@
+---
+description: Réutiliser les modules partagés avant d'écrire du code nouveau
+alwaysApply: true
+---
+
+# Composants partagés
+
+Avant d'ajouter du code, chercher l'existant dans `web/`, `web/arcade.js`, `web/arcade.css` et `supabase/migrations/`. Étendre le module commun. Ne copier une page, une fonction ou un bloc SQL que si aucun existant ne convient, et seulement sous une forme réutilisable.
+
+Le salon de jeu vit dans `Arcade` (`room`, `rpc`, `mountShell`, `recordStats`, `announceOnce`). Le style commun vit dans `arcade.css`. Les règles serveur vivent dans le schéma `arcade`. Une liste de jeux, un dialogue, un lobby ou un appel RPC n'existe qu'une fois.
+
+```javascript
+// À éviter : recopier le salon dans chaque jeu
+async function creerTable() {
+  await fetch(url + "/rest/v1/rpc/arcade_create", { /* … */ });
+}
+
+// Attendu : passer par le module commun
+const net = Arcade.room("mines", onState, onError);
+await net.create(name, config);
+```
+
+```sql
+-- À éviter : répéter la liste des jeux dans chaque fonction
+if v_game not in ('morpion', 'mastermind', 'mines') then
+
+-- Attendu : une seule fonction, appelée partout
+if not arcade.known_game(v_game) then
+```

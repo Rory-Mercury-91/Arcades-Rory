@@ -1,0 +1,3380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <meta name="apple-mobile-web-app-title" content="Yams">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Yams</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="colors.css">
+  <style>
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --system-nav-inset: env(safe-area-inset-bottom, 0px);
+    }
+
+    html.runtime-android {
+      --safe-top: max(env(safe-area-inset-top, 0px), 36px);
+      --system-nav-inset: 96px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0 auto;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.4;
+      padding-top: 0;
+      padding-bottom: calc(28px + var(--system-nav-inset));
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; touch-action: manipulation; }
+    button:disabled { opacity: 0.35; cursor: default; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: calc(14px + var(--safe-top)) 16px 12px;
+      background: var(--sticky);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-row h1 {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .link-mark {
+      display: inline-flex;
+      flex: none;
+      color: var(--muted);
+    }
+
+    .link-mark.is-online { color: var(--up); }
+
+    .link-mark svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+
+    .link-mark.is-online .link-off,
+    .link-mark:not(.is-online) .link-on { display: none; }
+
+    h1 {
+      margin: 0;
+      min-width: 0;
+      font-family: Georgia, "Palatino Linotype", Palatino, serif;
+      font-size: 34px;
+      line-height: 0.95;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .kicker {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .modes {
+      display: flex;
+      flex: none;
+      gap: 6px;
+    }
+
+    .modes button {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .modes button.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .setup-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 10px;
+      min-height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--total-bg);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .setup-toggle::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+    }
+
+    .setup-toggle[aria-expanded="true"]::after {
+      transform: translateY(3px) rotate(225deg);
+    }
+
+    .setup-toggle[hidden],
+    .meters[hidden] { display: none !important; }
+
+    .count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 2px;
+    }
+
+    .count button {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .count span {
+      min-width: 68px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .count strong {
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .meters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .meters .count {
+      justify-content: space-between;
+      padding: 4px;
+      border-radius: 14px;
+      background: var(--total-bg);
+    }
+
+    .meters .count span { min-width: 52px; }
+
+    .meters .count button {
+      width: 36px;
+      height: 36px;
+    }
+
+    .context {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .context::-webkit-scrollbar { display: none; }
+
+    .context-label {
+      flex: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      flex: none;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-weight: 700;
+    }
+
+    .pill.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .pager[hidden],
+    .tabs[hidden],
+    .context[hidden],
+    #evolution[hidden] { display: none !important; }
+
+    .evolution {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 12px 16px 0;
+    }
+
+    .podium {
+      display: grid;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .podium.is-duo { grid-template-columns: 1fr 1.2fr; }
+    .podium.is-trio { grid-template-columns: 1fr 1.25fr 1fr; }
+
+    .place {
+      min-width: 0;
+      padding: 12px 8px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      text-align: center;
+    }
+
+    .place-1 {
+      padding-top: 16px;
+      padding-bottom: 22px;
+      background: var(--score-bg);
+      color: var(--score-ink);
+    }
+
+    .place .rank,
+    .place .who,
+    .place .pts { display: block; }
+
+    .place .rank {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.72;
+    }
+
+    .place .who {
+      overflow: hidden;
+      margin-top: 2px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 750;
+    }
+
+    .place .pts {
+      font-size: 22px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .place-1 .pts { font-size: 30px; }
+
+    .evo-rank,
+    .evo-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .evo-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .evo-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .evo-head strong { font-size: 18px; }
+
+    .evo-total {
+      font-size: 28px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .evo-track {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      height: 108px;
+      margin-top: 12px;
+    }
+
+    .evo-col {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: center;
+    }
+
+    .evo-bar {
+      width: 100%;
+      max-width: 42px;
+      border-radius: 8px 8px 3px 3px;
+      background: var(--accent);
+    }
+
+    .evo-bar.is-empty {
+      height: 2px;
+      background: var(--line);
+    }
+
+    .evo-col .pts {
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .evo-col .delta {
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .evo-col .delta.up { color: var(--up); }
+    .evo-col .delta.down { color: var(--accent); }
+
+    .evo-col .seat {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .evo-note { margin-top: 8px; }
+
+    .tabs {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 14px;
+      padding: 7px 6px 8px;
+      text-align: center;
+    }
+
+    .tab .seat {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .tab .who {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab .pts {
+      display: block;
+      margin-top: 1px;
+      font-size: 16px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tab.is-leader { box-shadow: inset 0 3px 0 var(--leader); }
+
+    .tab.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .tab.is-empty .who { color: var(--muted); font-weight: 500; }
+
+    .tab.is-active .seat,
+    .tab.is-active .who { color: inherit; }
+
+    .intro {
+      margin: 14px 16px 0;
+      color: var(--muted);
+      font-size: 14.5px;
+      line-height: 1.45;
+    }
+
+    .owner {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      margin: 14px 16px 0;
+    }
+
+    .owner[hidden] { display: none; }
+
+    .owner .name-label { flex: 1; }
+
+    .owner-total {
+      flex: none;
+      min-width: 88px;
+      padding-bottom: 2px;
+      text-align: right;
+    }
+
+    .owner-total span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .owner-total strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .manche-num {
+      display: block;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .panel {
+      display: none;
+      margin: 12px 16px 0;
+      padding: 14px 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel.is-active { display: block; }
+
+    .identity {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      padding-bottom: 4px;
+    }
+
+    .identity .seat {
+      width: 42px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--total-bg);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 16px;
+      flex: none;
+    }
+
+    .name-label { flex: 1; min-width: 0; }
+
+    .name-label > span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .name-input,
+    input.score,
+    .chip {
+      height: 52px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--input-bg);
+      color: var(--input-ink);
+    }
+
+    .name-input {
+      width: 100%;
+      padding: 0 14px;
+      font-size: 18px;
+    }
+
+    .section-title {
+      margin: 16px 0 8px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .rows { display: flex; flex-direction: column; gap: 4px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 52px;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .label > span { min-width: 0; }
+
+    .label strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .label small,
+    .total-copy small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 450;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1.3;
+    }
+
+    .total-copy strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .die {
+      width: 28px;
+      height: 28px;
+      flex: none;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 3px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #e0d3c3;
+    }
+
+    .die i {
+      width: 5px;
+      height: 5px;
+      margin: auto;
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    .die i.on { background: #241c16; }
+
+    .controls { display: flex; gap: 6px; align-items: center; }
+
+    input.score {
+      width: 52px;
+      padding: 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      flex: none;
+    }
+
+    input.score.is-zero { color: var(--muted); }
+
+    input.score.is-set {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    input::placeholder { color: var(--placeholder); }
+
+    input.score:focus,
+    .name-input:focus {
+      outline: 2px solid var(--accent);
+      border-color: var(--accent);
+    }
+
+    .chip {
+      width: 52px;
+      min-width: 52px;
+      max-width: 52px;
+      padding: 0;
+      flex: none;
+      font-size: 16px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .bar {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      flex: none;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--input-bg);
+      color: var(--ink);
+    }
+
+    .bar::before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      right: 13px;
+      top: 50%;
+      height: 2px;
+      margin-top: -1px;
+      background: currentColor;
+      transform: rotate(-28deg);
+      border-radius: 2px;
+    }
+
+    .bar[aria-pressed="true"] {
+      background: var(--total-bg);
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .row.is-barred .label strong,
+    .row.is-barred .label small {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .row.is-barred input.score,
+    .row.is-barred .chip {
+      color: var(--muted);
+      background-color: var(--input-bg);
+      background-image: linear-gradient(
+        to top right,
+        transparent calc(50% - 1px),
+        var(--muted) calc(50% - 1px),
+        var(--muted) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      );
+    }
+
+    input.score:disabled { opacity: 1; }
+
+    .row-total,
+    .row-score {
+      margin: 4px 0;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: var(--total-bg);
+    }
+
+    .num {
+      min-width: 64px;
+      text-align: right;
+      font-size: 22px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-bonus.is-won {
+      background: var(--bonus-bg);
+      color: var(--bonus);
+    }
+
+    .row-bonus.is-won small { color: var(--bonus); }
+
+    .row-score {
+      margin-top: 10px;
+      padding: 14px 14px;
+      background: var(--score-bg);
+      color: var(--score-ink);
+    }
+
+    .row-score .label strong {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+    }
+
+    .row-score .num { font-size: 36px; line-height: 1; }
+
+    .brand-common {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: none;
+    }
+
+    .brand-common .link-mark {
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-tools {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .reset {
+      display: block;
+      margin: 14px auto 0;
+      padding: 12px 16px;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 14px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .reset-top {
+      margin: 0;
+      padding: 4px 2px;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    button.icon-btn, a.icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--ink);
+      text-decoration: none;
+      text-transform: none;
+      letter-spacing: 0;
+      line-height: 0;
+    }
+
+    button.icon-btn svg, a.icon-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+      pointer-events: none;
+    }
+
+    .modes button.icon-btn {
+      min-height: 40px;
+      padding: 0;
+      border-radius: 12px;
+    }
+
+    .modes button.icon-btn.is-active {
+      color: var(--accent-ink);
+    }
+
+    .pager {
+      display: flex;
+      gap: 8px;
+      margin: 14px 16px 0;
+    }
+
+    .pager button {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-weight: 700;
+    }
+
+    .dialog[hidden] { display: none; }
+
+    .dialog {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: calc(16px + var(--safe-top)) 16px 16px;
+      background: rgba(20, 14, 10, 0.48);
+    }
+
+    .dialog.is-center {
+      align-items: center;
+      padding: 16px 16px calc(16px + var(--system-nav-inset));
+    }
+
+    .dialog.is-center .dialog-card {
+      padding: 18px 16px;
+    }
+
+    .dialog-card {
+      width: min(480px, 100%);
+      padding: 18px 16px calc(16px + var(--system-nav-inset));
+      border-radius: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+
+    .dialog-card h2 { margin: 0 0 6px; font-size: 22px; }
+    .dialog-card p { margin: 0 0 12px; color: var(--muted); }
+
+    .dialog-card .btn {
+      display: block;
+      width: 100%;
+      height: 48px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-weight: 700;
+    }
+
+    .dialog-card .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .dialog-card .btn.text {
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted);
+    }
+
+    .tray-name { display: block; margin-bottom: 12px; }
+
+    .sheet-name {
+      align-self: center;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 18px;
+    }
+
+    .tray {
+      margin: 12px 16px 0;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .tray[hidden] { display: none !important; }
+
+    .dice-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .cube {
+      aspect-ratio: 1;
+      padding: 0;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+    }
+
+    .cube .die,
+    .die-empty {
+      width: 100%;
+      height: 100%;
+      padding: 10%;
+      border-radius: 14px;
+    }
+
+    .cube .die i {
+      width: 78%;
+      height: 78%;
+    }
+
+    .die-empty {
+      display: grid;
+      place-items: center;
+      background: #fff;
+      border: 1px solid #e0d3c3;
+      color: var(--placeholder);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .cube.is-held .die,
+    .cube.is-held .die-empty { outline: 3px solid var(--accent); }
+
+    @keyframes tumble {
+      0% { transform: rotate(-10deg) scale(0.9); }
+      50% { transform: rotate(10deg) scale(1); }
+      100% { transform: rotate(-10deg) scale(0.9); }
+    }
+
+    .cube.is-rolling .die { animation: tumble 0.16s linear infinite; }
+
+    .dice-status {
+      min-height: 1.3em;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .play-mode,
+    .room-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .play-mode { margin-bottom: 10px; }
+
+    .play-mode button,
+    .room-actions button,
+    #room-leave, #room-leave-lobby {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .play-mode button.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .dice-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .dice-actions button,
+    .hint-chip {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .dice-actions button { flex: 1; }
+
+    #dice-roll {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    #dice-roll:disabled,
+    .cube:disabled { opacity: 0.45; }
+
+    .hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .hint-chip { padding: 0 10px; }
+
+    .hint-chip.is-best {
+      background: var(--score-bg);
+      border-color: var(--score-bg);
+      color: var(--score-ink);
+    }
+
+    .hint-chip.is-bar {
+      background: transparent;
+      border-style: dashed;
+      color: var(--muted);
+    }
+
+    #dice-row[hidden],
+    #dice-roll[hidden],
+    #end-turn[hidden],
+    #room-setup[hidden],
+    #room-leave[hidden] { display: none !important; }
+
+    #room-setup {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    #room-leave, #room-leave-lobby { margin-top: 10px; }
+
+    #room-setup input {
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--input-bg);
+      color: var(--input-ink);
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .room-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .rule-note {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .gate, .lobby {
+      margin: 12px 16px 0;
+    }
+
+    .gate[hidden], .lobby[hidden],
+    #reset[hidden], #reset-top[hidden], #intro[hidden], #panels[hidden], .modes[hidden], .game-tools[hidden],
+    #gate-home[hidden], #gate-create-form[hidden], #gate-join-form[hidden],
+    #create-names[hidden] { display: none !important; }
+
+    .gate-choice, .field input, .lobby-copy, .lobby-start {
+      display: block;
+      width: 100%;
+      height: 48px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    #create-go, #join-go, #lobby-start {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .field { display: block; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .field input {
+      margin-top: 4px;
+      padding: 0 12px;
+      background: var(--input-bg);
+      color: var(--input-ink);
+    }
+    #join-code { text-transform: uppercase; }
+
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .choice-row button {
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-weight: 700;
+    }
+    .choice-row button.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .switch-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 48px;
+      margin-top: 8px;
+    }
+    .switch-line span { font-weight: 700; }
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 99px;
+      background: var(--line);
+      flex: none;
+    }
+    .switch-knob {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--card);
+      pointer-events: none;
+      transition: transform 160ms ease;
+    }
+    .switch.is-on { background: var(--accent); }
+    .switch.is-on .switch-knob { transform: translateX(20px); }
+    .switch:disabled { opacity: 0.45; }
+
+    #create-names { margin-top: 8px; }
+
+    .lobby-code {
+      margin: 0;
+      font-size: 40px;
+      letter-spacing: 0.18em;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .lobby-list { margin: 12px 0; padding-left: 18px; }
+
+    .settings-list { margin: 0; padding: 0; list-style: none; }
+    .settings-list li {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .settings-list .setting-label { justify-self: start; text-align: left; }
+    .settings-list .setting-value { text-align: center; }
+    .settings-list .help-btn { justify-self: end; }
+    .settings-list li[hidden], .help-text[hidden], #lobby-start[hidden], .play-mode[hidden], .tray-name[hidden] { display: none !important; }
+    .help-btn {
+      width: 28px;
+      height: 28px;
+      flex: none;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-weight: 800;
+    }
+    .help-text { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .pair .count span { min-width: 28px; }
+    .pair-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 13px; }
+    .option-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .seat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 10px;
+    }
+    .seat-badge {
+      display: inline-block;
+      margin: 0;
+      min-width: 0;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--total-bg);
+      font-weight: 750;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .seat-row #room-leave {
+      width: auto;
+      flex: none;
+      margin-top: 0;
+      min-height: 36px;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    #room-note[hidden] { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-row">
+      <h1>Yams</h1>
+      <div class="brand-common">
+        <a class="icon-btn" href="index.html" aria-label="Tous les jeux">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
+            <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
+            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
+            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
+          </svg>
+        </a>
+        <span class="link-mark" id="link-mark" title="Sur ce téléphone" aria-label="Sur ce téléphone">
+          <svg class="link-off" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
+            <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 5l14 14"/>
+          </svg>
+          <svg class="link-on" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
+            <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
+          </svg>
+        </span>
+        <button type="button" class="icon-btn" id="page-back" aria-label="Retour">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 14 4 9l5-5"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 9h10.5a5.5 5.5 0 0 1 0 11H12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="game-tools" hidden>
+        <button type="button" class="reset reset-top icon-btn" id="reset-top" aria-label="Remettre à zéro">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 0 0-9-9 9.7 9.7 0 0 0-6.7 2.7L3 8"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 3v5h5"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 0 0 9 9 9.7 9.7 0 0 0 6.7-2.7L21 16"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 21v-5h-5"/>
+          </svg>
+        </button>
+        <div class="modes" role="tablist" aria-label="Façon de marquer">
+          <button type="button" class="icon-btn" id="mode-players" role="tab" aria-selected="true" aria-label="Jeu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="8.2" cy="8.2" r="1.25" fill="currentColor"/>
+              <circle cx="15.8" cy="8.2" r="1.25" fill="currentColor"/>
+              <circle cx="8.2" cy="12" r="1.25" fill="currentColor"/>
+              <circle cx="15.8" cy="12" r="1.25" fill="currentColor"/>
+              <circle cx="8.2" cy="15.8" r="1.25" fill="currentColor"/>
+              <circle cx="15.8" cy="15.8" r="1.25" fill="currentColor"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn" id="mode-evolution" role="tab" aria-selected="false" aria-label="Évolution">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="13" width="4.5" height="8" rx="1.2" fill="currentColor"/>
+              <rect x="9.75" y="8" width="4.5" height="13" rx="1.2" fill="currentColor"/>
+              <rect x="16.5" y="3" width="4.5" height="18" rx="1.2" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <button type="button" class="reset reset-top icon-btn" id="settings-open" aria-label="Réglages">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.58-.22 1.12-.54 1.63-.94l2.39.96c.24.1.51 0 .64-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
+          </svg>
+        </button>
+    </div>
+    <button type="button" id="setup-toggle" class="setup-toggle" hidden>Réglages</button>
+    <div class="meters" id="meters">
+      <div class="count" aria-label="Nombre de joueurs">
+        <button type="button" id="less-players" aria-label="Retirer un joueur">−</button>
+        <span><strong id="player-count-value">1</strong><span id="player-unit">joueur</span></span>
+        <button type="button" id="more-players" aria-label="Ajouter un joueur">+</button>
+      </div>
+      <div class="count" aria-label="Nombre de manches">
+        <button type="button" id="less-manches" aria-label="Retirer une manche">−</button>
+        <span><strong id="manche-count-value">1</strong><span id="manche-unit">manche</span></span>
+        <button type="button" id="more-manches" aria-label="Ajouter une manche">+</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Joueurs"></div>
+    <div class="context" id="context" hidden></div>
+  </header>
+
+  <p class="intro" id="intro"></p>
+
+  <section class="gate" id="gate" hidden>
+    <div id="gate-create-form">
+      <div class="option-head"><span>Où jouer</span><button type="button" class="help-btn" data-help="help-place" aria-label="Différence entre téléphone et en ligne">?</button></div>
+      <p class="help-text" id="help-place" hidden>Sur ce téléphone : aucune connexion, tout reste dans l'appareil. En ligne : les autres téléphones rejoignent avec le code.</p>
+      <div class="choice-row" role="group" aria-label="Table">
+        <button type="button" id="create-local">Sur ce téléphone</button>
+        <button type="button" id="create-online">En ligne</button>
+      </div>
+      <div class="option-head"><span>Dés</span><button type="button" class="help-btn" data-help="help-dice" aria-label="À quoi servent les dés">?</button></div>
+      <p class="help-text" id="help-dice" hidden>Dés du téléphone : trois lancers communs. Dés physiques : chacun lance les siens et inscrit le résultat. En ligne, les dés du téléphone sont imposés.</p>
+      <div class="switch-line">
+        <span>Dés physiques</span>
+        <button type="button" class="switch" id="create-dice" role="switch" aria-checked="false" aria-label="Dés physiques">
+          <span class="switch-knob"></span>
+        </button>
+      </div>
+      <div class="option-head"><span>Options</span><button type="button" class="help-btn" data-help="help-options" aria-label="À quoi sert l'aide">?</button></div>
+      <p class="help-text" id="help-options" hidden>L'aide propose une combinaison, ou de barrer une case quand rien n'est possible.</p>
+      <div class="switch-line">
+        <span>Aide intelligente</span>
+        <button type="button" class="switch is-on" id="create-hints" role="switch" aria-checked="true" aria-label="Aide intelligente">
+          <span class="switch-knob"></span>
+        </button>
+      </div>
+      <div class="pair">
+        <div>
+          <span class="pair-label">Joueurs</span>
+          <div class="count" aria-label="Nombre de joueurs">
+            <button type="button" id="create-less-players" aria-label="Retirer un joueur">−</button>
+            <span><strong id="create-player-value">1</strong></span>
+            <button type="button" id="create-more-players" aria-label="Ajouter un joueur">+</button>
+          </div>
+        </div>
+        <div>
+          <span class="pair-label">Manches</span>
+          <div class="count" aria-label="Nombre de manches">
+            <button type="button" id="create-less-manches" aria-label="Retirer une manche">−</button>
+            <span><strong id="create-manche-value">1</strong></span>
+            <button type="button" id="create-more-manches" aria-label="Ajouter une manche">+</button>
+          </div>
+        </div>
+      </div>
+      <div id="create-names"></div>
+      <p class="dice-status" id="create-error"></p>
+      <button type="button" class="gate-choice" id="create-go">Créer la partie</button>
+    </div>
+  </section>
+
+  <section class="lobby tray" id="lobby" hidden>
+    <p class="lobby-code" id="lobby-code"></p>
+    <button type="button" class="lobby-copy" id="lobby-copy">Copier l'invitation</button>
+    <p class="dice-status" id="lobby-note"></p>
+    <ul class="lobby-list" id="lobby-players"></ul>
+    <button type="button" class="lobby-start" id="lobby-start" hidden>Lancer la partie</button>
+    <button type="button" id="room-leave-lobby">Quitter la table</button>
+  </section>
+
+  <section class="tray" id="tray">
+    <div class="seat-row">
+      <p class="seat-badge" id="seat-badge"></p>
+      <button type="button" id="room-leave" hidden>Quitter la table</button>
+    </div>
+    <div class="play-mode" role="group" aria-label="Façon de lancer" hidden>
+      <button type="button" id="play-virtual">Dés du téléphone</button>
+      <button type="button" id="play-physical">Dés physiques</button>
+    </div>
+    <div class="dice-row" id="dice-row"></div>
+    <p class="dice-status" id="dice-status"></p>
+    <div class="dice-actions">
+      <button type="button" id="dice-roll">Lancer</button>
+      <button type="button" id="end-turn" hidden>Fin du tour</button>
+    </div>
+    <div class="hints" id="dice-hints"></div>
+    <p class="room-note" id="room-note">Les dés lancent sur ce téléphone. Une table en ligne utilise le serveur pour que chacun voie le même lancer.</p>
+  </section>
+
+  <main id="panels"></main>
+  <section id="evolution" class="evolution" hidden></section>
+
+  <button type="button" class="reset" id="reset">Nouvelle partie</button>
+
+  <div class="pager">
+    <button type="button" id="prev">Précédent</button>
+    <button type="button" id="next">Suivant</button>
+  </div>
+
+  <div class="dialog is-center" id="leave-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="leave-title">
+      <h2 id="leave-title">Quitter la table</h2>
+      <p id="leave-text">La partie continue pour les autres. Tu pourras revenir avec le même code et le même nom.</p>
+      <button type="button" class="btn primary" id="leave-confirm">Quitter</button>
+      <button type="button" class="btn text" id="leave-cancel">Rester</button>
+    </div>
+  </div>
+
+  <div class="dialog" id="settings-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <h2 id="settings-title">Partie</h2>
+      <label class="field">Nom du joueur
+        <input id="settings-name" class="name-input" maxlength="24" autocomplete="name">
+      </label>
+      <ul class="settings-list" id="settings-list"></ul>
+      <button type="button" class="btn text" id="settings-close">Fermer</button>
+    </div>
+  </div>
+
+  <div class="dialog is-center" id="tutorial" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <p class="dice-status" id="tutorial-count"></p>
+      <h2 id="tutorial-title"></h2>
+      <p id="tutorial-copy"></p>
+      <button type="button" class="btn primary" id="tutorial-next">Suivant</button>
+      <button type="button" class="btn text" id="tutorial-skip">Passer</button>
+    </div>
+  </div>
+
+  <div class="dialog is-center" id="bar-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="bar-title">
+      <h2 id="bar-title">Es-tu sûr ?</h2>
+      <p id="bar-text">Cette case comptera zéro.</p>
+      <button type="button" class="btn primary" id="bar-yes">Oui, barrer</button>
+      <button type="button" class="btn text" id="bar-no">Non</button>
+    </div>
+  </div>
+
+  <div class="dialog is-center" id="podium-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="podium-title">
+      <h2 id="podium-title">Fin de partie</h2>
+      <div id="podium-body"></div>
+      <button type="button" class="btn primary" id="podium-close">Fermer</button>
+    </div>
+  </div>
+
+  <div class="dialog is-center" id="dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <h2 id="dialog-title">Remettre à zéro</h2>
+      <p id="dialog-text">Scores, noms, joueurs et manches reviennent au départ : 1 joueur, 1 manche.</p>
+      <button type="button" class="btn primary" id="reset-confirm">Tout effacer</button>
+      <button type="button" class="btn text" id="dialog-cancel">Annuler</button>
+    </div>
+  </div>
+
+  <script src="yams-config.js"></script>
+  <script>
+    // Même règles que la grille Chance : bonus 35 si As à Six ≥ 63.
+    const STORAGE_KEY = "yams-chance-5-v3";
+    const PREVIOUS_KEY = "yams-chance-5-v2";
+    const LEGACY_KEY = "yams-chance-5-v1";
+    const BONUS_THRESHOLD = 63;
+    const BONUS_POINTS = 35;
+    const PLAYER_MAX = 5;
+    const MANCHE_MAX = 5;
+
+    const PIPS = {
+      1: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+      2: [1, 0, 0, 0, 0, 0, 0, 0, 1],
+      3: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+      4: [1, 0, 1, 0, 0, 0, 1, 0, 1],
+      5: [1, 0, 1, 0, 1, 0, 1, 0, 1],
+      6: [1, 0, 1, 1, 0, 1, 1, 0, 1]
+    };
+
+    const UPPER = [
+      { id: "as", label: "As", hint: "total des 1", max: 5, pips: 1 },
+      { id: "deux", label: "Deux", hint: "total des 2", max: 10, pips: 2 },
+      { id: "trois", label: "Trois", hint: "total des 3", max: 15, pips: 3 },
+      { id: "quatre", label: "Quatre", hint: "total des 4", max: 20, pips: 4 },
+      { id: "cinq", label: "Cinq", hint: "total des 5", max: 25, pips: 5 },
+      { id: "six", label: "Six", hint: "total des 6", max: 30, pips: 6 }
+    ];
+
+    const LOWER = [
+      { id: "brelan", label: "Brelan", hint: "3 identiques · total des 5 dés", max: 30 },
+      { id: "carre", label: "Carré", hint: "4 identiques · total des 5 dés", max: 30 },
+      { id: "full", label: "Full", hint: "3 + 2 identiques", fixed: 25 },
+      { id: "petite", label: "Petite suite", hint: "suite de 4 dés", fixed: 30 },
+      { id: "grande", label: "Grande suite", hint: "suite de 5 dés", fixed: 40 },
+      { id: "yams", label: "Yams", hint: "5 identiques", fixed: 50 },
+      { id: "chance", label: "Chance", hint: "total des 5 dés", max: 30 }
+    ];
+
+    const ALL = UPPER.concat(LOWER);
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let state = loadState();
+
+    function emptyScores() {
+      const scores = {};
+      ALL.forEach((cat) => { scores[cat.id] = ""; });
+      return scores;
+    }
+
+    function blankPlayer() {
+      return {
+        name: "",
+        manches: Array.from({ length: MANCHE_MAX }, emptyScores)
+      };
+    }
+
+    function defaultState() {
+      return {
+        view: "players",
+        screen: "create",
+        timed: false,
+        hints: true,
+        playerCount: 1,
+        mancheCount: 1,
+        activePlayer: 0,
+        activeManche: 0,
+        players: Array.from({ length: PLAYER_MAX }, blankPlayer)
+      };
+    }
+
+    function clamp(value, min, max, fallback) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return fallback;
+      return Math.min(max, Math.max(min, n));
+    }
+
+    function isEvolutionView() {
+      return state.view === "evolution";
+    }
+
+    function book() {
+      return {
+        get count() { return state.playerCount; },
+        get active() { return state.activePlayer; },
+        set active(value) { state.activePlayer = value; }
+      };
+    }
+
+    function sheetAt(index) {
+      const player = state.players[index];
+      return {
+        get name() { return player.name; },
+        set name(value) { player.name = value; },
+        scores: player.manches[state.activeManche]
+      };
+    }
+
+    function playerName(index) {
+      const name = state.players[index].name.trim();
+      return name || "Joueur " + (index + 1);
+    }
+
+    function hasEntry(scores) {
+      return Object.values(scores).some((value) => value !== "");
+    }
+
+    function playerTotal(playerIndex) {
+      let sum = 0;
+      for (let manche = 0; manche < state.mancheCount; manche += 1) {
+        sum += compute({ scores: state.players[playerIndex].manches[manche] }).score;
+      }
+      return sum;
+    }
+
+    function sanitizeScore(raw, max) {
+      const digits = String(raw ?? "").replace(/\D/g, "").slice(0, 2);
+      if (digits === "") return "";
+      let n = parseInt(digits, 10);
+      if (Number.isNaN(n)) return "";
+      if (n > max) n = max;
+      return String(n);
+    }
+
+    function readScore(value) {
+      if (value === "" || value == null || value === "x") return 0;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    // "x" = case barrée : elle vaut zéro et n'est plus jouable.
+    function normalizeScore(cat, raw) {
+      if (raw === "x") return "x";
+      if (cat.fixed) {
+        if (String(raw) === String(cat.fixed)) return String(cat.fixed);
+        if (raw === "0" || raw === 0) return "x";
+        return "";
+      }
+      return sanitizeScore(raw, cat.max);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function fillScores(target, source) {
+      const scores = source || {};
+      ALL.forEach((cat) => {
+        target[cat.id] = normalizeScore(cat, scores[cat.id] ?? "");
+      });
+    }
+
+    function importFlatPlayers(base, list, count, active) {
+      base.view = "players";
+      base.mancheCount = 1;
+      base.playerCount = clamp(count, 1, PLAYER_MAX, PLAYER_MAX);
+      base.activePlayer = clamp(active, 0, base.playerCount - 1, 0);
+      (list || []).slice(0, PLAYER_MAX).forEach((player, index) => {
+        if (typeof player.name === "string") base.players[index].name = player.name.slice(0, 24);
+        fillScores(base.players[index].manches[0], player.scores);
+      });
+    }
+
+    function importPrevious(base, data) {
+      if (data.mode === "manches" && data.solo && Array.isArray(data.solo.list)) {
+        base.view = "players";
+        base.playerCount = 1;
+        base.players[0].name = typeof data.solo.name === "string" ? data.solo.name.slice(0, 24) : "";
+        base.mancheCount = clamp(data.solo.count, 1, MANCHE_MAX, 1);
+        base.activeManche = clamp(data.solo.active, 0, base.mancheCount - 1, 0);
+        data.solo.list.slice(0, MANCHE_MAX).forEach((manche, index) => {
+          fillScores(base.players[0].manches[index], manche.scores);
+        });
+        return;
+      }
+      const bookData = data.players || {};
+      importFlatPlayers(base, bookData.list, bookData.count, bookData.active);
+    }
+
+    function loadState() {
+      const base = defaultState();
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          base.view = data.view === "evolution" ? "evolution" : "players";
+          base.screen = data.screen === "play" ? "play" : "create";
+          base.timed = false;
+          base.hints = data.hints !== false;
+          base.playerCount = clamp(data.playerCount, 1, PLAYER_MAX, PLAYER_MAX);
+          base.mancheCount = clamp(data.mancheCount, 1, MANCHE_MAX, 1);
+          base.activePlayer = clamp(data.activePlayer, 0, base.playerCount - 1, 0);
+          base.activeManche = clamp(data.activeManche, 0, base.mancheCount - 1, 0);
+          if (Array.isArray(data.players)) {
+            data.players.slice(0, PLAYER_MAX).forEach((player, index) => {
+              if (typeof player.name === "string") base.players[index].name = player.name.slice(0, 24);
+              (player.manches || []).slice(0, MANCHE_MAX).forEach((scores, manche) => {
+                fillScores(base.players[index].manches[manche], scores);
+              });
+            });
+          }
+          if (!base.screen) {
+            const busy = base.players.slice(0, base.playerCount).some((player) => player.manches.slice(0, base.mancheCount).some(hasEntry));
+            base.screen = busy ? "play" : "create";
+          }
+          return base;
+        }
+        const previous = localStorage.getItem(PREVIOUS_KEY);
+        if (previous) {
+          importPrevious(base, JSON.parse(previous));
+          return base;
+        }
+        const legacy = localStorage.getItem(LEGACY_KEY);
+        if (legacy) {
+          const data = JSON.parse(legacy);
+          importFlatPlayers(base, data.players, data.count, data.active);
+        }
+        if (!base.screen) {
+          const busy = base.players.slice(0, base.playerCount).some((player) => player.manches.slice(0, base.mancheCount).some(hasEntry));
+          base.screen = busy ? "play" : "home";
+        }
+        return base;
+      } catch (error) {
+        return base;
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (error) {
+        // Certains navigateurs refusent le stockage si le fichier est ouvert d'une façon particulière.
+      }
+    }
+
+    function categoryMax(cat) {
+      return cat.max || cat.fixed;
+    }
+
+    function compute(player) {
+      const upper = UPPER.reduce((sum, cat) => sum + readScore(player.scores[cat.id]), 0);
+      const lower = LOWER.reduce((sum, cat) => sum + readScore(player.scores[cat.id]), 0);
+      const bonus = upper >= BONUS_THRESHOLD ? BONUS_POINTS : 0;
+      const anyUpper = UPPER.some((cat) => player.scores[cat.id] !== "");
+      let hint = "35 pts si le total ≥ 63";
+      if (anyUpper) {
+        if (upper >= BONUS_THRESHOLD) {
+          hint = "Bonus acquis";
+        } else {
+          const remaining = UPPER.reduce((sum, cat) => {
+            return sum + (player.scores[cat.id] === "" ? cat.max : 0);
+          }, 0);
+          hint = upper + remaining < BONUS_THRESHOLD
+            ? "Bonus hors de portée"
+            : "Encore " + (BONUS_THRESHOLD - upper) + " pts";
+        }
+      }
+      return {
+        upper,
+        bonus,
+        upperTotal: upper + bonus,
+        lower,
+        score: upper + bonus + lower,
+        hint
+      };
+    }
+
+    function displayName(index) {
+      const name = sheetAt(index).name.trim();
+      return name || "Nom";
+    }
+
+    function dieMarkup(pips) {
+      const dots = PIPS[pips].map((on) => `<i class="${on ? "on" : ""}"></i>`).join("");
+      return `<span class="die" aria-hidden="true">${dots}</span>`;
+    }
+
+    function scoreRow(playerIndex, cat) {
+      const value = sheetAt(playerIndex).scores[cat.id];
+      const barred = value === "x";
+      const filled = value !== "" && !barred;
+      const lockInput = inputLocked(playerIndex, cat.id);
+      const lockControl = controlLocked(playerIndex, cat.id);
+      const barLabel = (barred ? "Annuler le barrage " : "Barrer ") + cat.label;
+      const barButton = `<button type="button" class="bar" aria-pressed="${barred ? "true" : "false"}" aria-label="${escapeHtml(barLabel)}"${lockControl ? " disabled" : ""}></button>`;
+      const field = cat.fixed
+        ? `<button type="button" class="chip" data-value="${cat.fixed}" aria-pressed="${value === String(cat.fixed) ? "true" : "false"}" aria-label="Marquer ${cat.fixed} points"${lockControl ? " disabled" : ""}>${cat.fixed}</button>`
+        : `<input class="score${filled ? " is-set" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2" placeholder="–" aria-label="${escapeHtml(cat.label)}" data-max="${categoryMax(cat)}" value="${barred ? "" : escapeHtml(value)}"${barred || lockInput ? " disabled" : ""}>`;
+      const note = cat.id === "six" || cat.id === "chance"
+        ? `<p class="rule-note">Le trait barre une case : elle compte zéro.</p>`
+        : "";
+      return `<div class="row${barred ? " is-barred" : ""}" data-sheet="${playerIndex}" data-cat="${cat.id}">
+        <div class="label">${cat.pips ? dieMarkup(cat.pips) : ""}<span><strong>${escapeHtml(cat.label)}</strong><small>${escapeHtml(cat.hint)}</small></span></div>
+        <div class="controls">
+          ${field}
+          ${barButton}
+        </div>
+      </div>${note}`;
+    }
+
+    function totalRow(field, label, hint) {
+      const hintHtml = hint ? `<small data-field="${hint}"></small>` : "";
+      return `<div class="row row-total${field === "bonus" ? " row-bonus" : ""}">
+        <div class="total-copy"><strong>${label}</strong>${hintHtml}</div>
+        <strong class="num" data-field="${field}">0</strong>
+      </div>`;
+    }
+
+    function nameIndex() {
+      if (room.token && room.you >= 0) return room.you;
+      return state.activePlayer;
+    }
+
+    function syncNameField() {
+      const index = nameIndex();
+      ["settings-name"].forEach((id) => {
+        const input = document.getElementById(id);
+        if (!input || !state.players[index]) return;
+        input.dataset.sheet = String(index);
+        if (document.activeElement === input) return;
+        input.value = state.players[index].name;
+      });
+    }
+
+    function identityMarkup(index) {
+      if (state.playerCount < 2) return "";
+      const name = sheetAt(index).name.trim() || ("Joueur " + (index + 1));
+      return `<div class="identity">
+        <div class="seat">#${index + 1}</div>
+        <strong class="sheet-name">${escapeHtml(name)}</strong>
+      </div>`;
+    }
+
+    function lastResultText(playerIndex) {
+      const player = state.players[playerIndex];
+      let last = -1;
+      for (let manche = state.mancheCount - 1; manche >= 0; manche -= 1) {
+        if (hasEntry(player.manches[manche])) {
+          last = manche;
+          break;
+        }
+      }
+      if (last < 0) return "Aucun score pour l'instant.";
+      const score = compute({ scores: player.manches[last] }).score;
+      let previous = -1;
+      for (let manche = last - 1; manche >= 0; manche -= 1) {
+        if (hasEntry(player.manches[manche])) {
+          previous = manche;
+          break;
+        }
+      }
+      if (previous < 0) return "Dernière manche jouée : " + (last + 1) + " · " + score + " pts.";
+      const delta = score - compute({ scores: player.manches[previous] }).score;
+      const sign = delta > 0 ? "+" + delta : String(delta);
+      return "Manche " + (last + 1) + " : " + score + " pts (" + sign + " depuis la manche " + (previous + 1) + ").";
+    }
+
+    function evolutionMarkup() {
+      const people = [];
+      for (let index = 0; index < state.playerCount; index += 1) {
+        people.push({ index, name: playerName(index), total: playerTotal(index) });
+      }
+      const entered = [];
+      people.forEach((person) => {
+        for (let manche = 0; manche < state.mancheCount; manche += 1) {
+          const scores = state.players[person.index].manches[manche];
+          if (hasEntry(scores)) entered.push(compute({ scores }).score);
+        }
+      });
+      const peak = Math.max(1, ...entered);
+      const ranked = people.slice().sort((a, b) => b.total - a.total || a.index - b.index);
+      const showPodium = state.playerCount > 1 && entered.length > 0;
+      const places = ranked.slice(0, 3);
+      const podiumOrder = places.length === 2 ? [places[1], places[0]] : [places[1], places[0], places[2]].filter(Boolean);
+      const podium = showPodium
+        ? `<div class="podium ${places.length === 2 ? "is-duo" : "is-trio"}" aria-label="Podium">${podiumOrder.map((person) => {
+          const place = ranked.indexOf(person) + 1;
+          return `<div class="place place-${place}"><span class="rank">${place}</span><span class="who">${escapeHtml(person.name)}</span><span class="pts">${person.total}</span></div>`;
+        }).join("")}</div>`
+        : "";
+      const rankLine = entered.length
+        ? ""
+        : `<p class="evo-note">Dès la deuxième manche, l'écart avec la précédente s'affiche sous chaque barre.</p>`;
+      const cards = people.map((person) => {
+        const cols = [];
+        for (let manche = 0; manche < state.mancheCount; manche += 1) {
+          const scores = state.players[person.index].manches[manche];
+          const played = hasEntry(scores);
+          const score = played ? compute({ scores }).score : null;
+          let delta = "";
+          if (played) {
+            let prev = null;
+            for (let earlier = manche - 1; earlier >= 0; earlier -= 1) {
+              if (hasEntry(state.players[person.index].manches[earlier])) {
+                prev = compute({ scores: state.players[person.index].manches[earlier] }).score;
+                break;
+              }
+            }
+            if (prev !== null) {
+              const diff = score - prev;
+              const kind = diff > 0 ? "up" : diff < 0 ? "down" : "";
+              const text = diff > 0 ? "+" + diff : String(diff);
+              delta = `<span class="delta ${kind}">${text}</span>`;
+            }
+          }
+          const height = played ? Math.max(6, Math.round((score / peak) * 72)) : 0;
+          const bar = played
+            ? `<span class="evo-bar" style="height:${height}px"></span>`
+            : `<span class="evo-bar is-empty"></span>`;
+          cols.push(`<div class="evo-col">${bar}<span class="pts">${played ? score : "–"}</span>${delta}<span class="seat">M${manche + 1}</span></div>`);
+        }
+        return `<article class="evo-card">
+          <div class="evo-head"><strong>${escapeHtml(person.name)}</strong><span class="evo-total">${person.total}</span></div>
+          <div class="evo-track">${cols.join("")}</div>
+          <p class="evo-note">${escapeHtml(lastResultText(person.index))}</p>
+        </article>`;
+      }).join("");
+      return podium + rankLine + cards;
+    }
+
+    function renderContext() {
+      const context = document.getElementById("context");
+      if (isEvolutionView()) {
+        context.hidden = true;
+        context.innerHTML = "";
+        return;
+      }
+      if (state.mancheCount > 1) {
+        const pills = [];
+        for (let manche = 0; manche < state.mancheCount; manche += 1) {
+          pills.push(`<button type="button" class="pill${manche === state.activeManche ? " is-active" : ""}" data-manche="${manche}">${manche + 1}</button>`);
+        }
+        context.hidden = false;
+        context.innerHTML = `<span class="context-label">Manche</span>${pills.join("")}`;
+        return;
+      }
+      context.hidden = true;
+      context.innerHTML = "";
+    }
+
+    const FACE_VALUE = { as: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6 };
+    const dice = { faces: [0, 0, 0, 0, 0], held: [false, false, false, false, false], rolls: 0, busy: false };
+    const TUTORIAL = [
+      ["Yams", "Une feuille de score. Tu crées une partie sur ce téléphone, ou tu rejoins une table avec un code."],
+      ["Les dés", "Jusqu'à trois lancers. Entre deux lancers, touche un dé pour le garder."],
+      ["La feuille", "À la fin du tour, inscris le score sur une seule ligne. Une case vide reste disponible."],
+      ["Barrer", "Au troisième lancer, si rien ne marque, tu peux barrer une case. Elle compte zéro. L'application demande confirmation."],
+      ["Si tu veux", "Plusieurs joueurs, plusieurs manches, une aide, ou une table en ligne. Rien de tout ça n'est obligatoire."]
+    ];
+    let tutorialStep = 0;
+    let barPending = null;
+    let podiumKey = "";
+    const room = {
+      base: localStorage.getItem("yams-table-base")
+        || (location.protocol.startsWith("http") ? location.origin + "/yams" : "http://138.2.182.125:8080/yams"),
+      code: "",
+      token: "",
+      you: -1,
+      revision: 0,
+      turn: 0,
+      phase: "play",
+      error: "",
+      notice: "",
+      opening: []
+    };
+    let roomTimer = 0;
+    let renameTimer = 0;
+    let pendingName = null;
+    let playMode = "virtual";
+    let followSheet = window.Prefs ? Prefs.followSheet() : true;
+    let setupOpen = false;
+    try {
+      if (localStorage.getItem("yams-dice-play") === "physical") playMode = "physical";
+    } catch (error) {
+      // Le stockage local peut être refusé.
+    }
+
+    function sessionGet(key) {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) return saved;
+        const legacy = sessionStorage.getItem(key) || "";
+        if (legacy) localStorage.setItem(key, legacy);
+        return legacy;
+      } catch (error) { return ""; }
+    }
+
+    function sessionSet(key, value) {
+      try {
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch (error) {
+        // Le mode fichier peut refuser le stockage.
+      }
+    }
+
+    room.code = sessionGet("yams-room-code");
+    room.token = sessionGet("yams-room-token");
+
+    function countsOf(faces) {
+      const counts = [0, 0, 0, 0, 0, 0, 0];
+      faces.forEach((face) => {
+        if (face >= 1 && face <= 6) counts[face] += 1;
+      });
+      return counts;
+    }
+
+    function hasSuite(faces, length) {
+      const present = new Set(faces.filter((face) => face));
+      for (let start = 1; start <= 7 - length; start += 1) {
+        let ok = true;
+        for (let offset = 0; offset < length; offset += 1) {
+          if (!present.has(start + offset)) ok = false;
+        }
+        if (ok) return true;
+      }
+      return false;
+    }
+
+    function scoreFor(catId, faces) {
+      const counts = countsOf(faces);
+      const total = faces.reduce((sum, face) => sum + (face || 0), 0);
+      if (FACE_VALUE[catId]) return counts[FACE_VALUE[catId]] * FACE_VALUE[catId];
+      if (catId === "brelan") return counts.some((count) => count >= 3) ? total : 0;
+      if (catId === "carre") return counts.some((count) => count >= 4) ? total : 0;
+      if (catId === "full") return counts.includes(3) && counts.includes(2) ? 25 : 0;
+      if (catId === "petite") return hasSuite(faces, 4) ? 30 : 0;
+      if (catId === "grande") return hasSuite(faces, 5) ? 40 : 0;
+      if (catId === "yams") return counts.includes(5) ? 50 : 0;
+      if (catId === "chance") return Math.min(30, total);
+      return 0;
+    }
+
+    function yourTurn() {
+      if (!room.token) return true;
+      return room.phase === "play" && room.you === room.turn;
+    }
+
+    function savedValue(catId) {
+      return room.snapshot && room.snapshot[catId] ? room.snapshot[catId] : "";
+    }
+
+    function turnOpen(playerIndex) {
+      return Boolean(room.token) && playerIndex === room.you && yourTurn() && room.phase === "play";
+    }
+
+    function inputLocked(playerIndex, catId) {
+      if (!room.token) return false;
+      if (savedValue(catId) !== "") return true;
+      if (!turnOpen(playerIndex)) return true;
+      return playMode === "virtual";
+    }
+
+    function controlLocked(playerIndex, catId) {
+      if (!room.token) return false;
+      if (savedValue(catId) !== "") return true;
+      if (!turnOpen(playerIndex)) return true;
+      return playMode === "virtual" && dice.rolls < 1;
+    }
+
+    function matchStarted() {
+      if (room.token) return true;
+      return state.players.slice(0, state.playerCount).some((player) => {
+        return player.manches.slice(0, state.mancheCount).some(hasEntry);
+      });
+    }
+
+    function pendingDiff() {
+      if (!room.snapshot || room.you < 0) return [];
+      const mine = state.players[room.you].manches[state.activeManche];
+      const changes = [];
+      ALL.forEach((cat) => {
+        if ((mine[cat.id] || "") !== (room.snapshot[cat.id] || "")) {
+          changes.push({ id: cat.id, value: mine[cat.id] });
+        }
+      });
+      return changes;
+    }
+
+    function resetDice() {
+      dice.faces = [0, 0, 0, 0, 0];
+      dice.held = [false, false, false, false, false];
+      dice.rolls = 0;
+    }
+
+    function nextRoll() {
+      const hold = dice.rolls === 0 ? [false, false, false, false, false] : dice.held.slice();
+      const bytes = new Uint32Array(5);
+      crypto.getRandomValues(bytes);
+      const faces = dice.faces.map((face, index) => (hold[index] && face ? face : (bytes[index] % 6) + 1));
+      const held = hold.map((flag, index) => Boolean(flag && faces[index]));
+      return { faces, held };
+    }
+
+    function paintTumble() {
+      document.querySelectorAll("#dice-row .cube").forEach((cube) => {
+        if (cube.classList.contains("is-held")) return;
+        cube.classList.add("is-rolling");
+        cube.innerHTML = dieMarkup(1 + Math.floor(Math.random() * 6));
+      });
+    }
+
+    function tableBase() {
+      return room.base.replace(/\/$/, "");
+    }
+
+    function useSupabase() {
+      return Boolean(window.YAMS_SUPABASE_URL && window.YAMS_SUPABASE_ANON_KEY);
+    }
+
+    function rememberRoom() {
+      sessionSet("yams-room-code", room.code);
+      sessionSet("yams-room-token", room.token);
+    }
+
+    function forgetRoom() {
+      room.code = "";
+      room.token = "";
+      room.you = -1;
+      room.revision = 0;
+      room.error = "";
+      rememberRoom();
+      resetDice();
+      state.screen = "create";
+    }
+
+    async function supabaseRoom(path, options) {
+      const body = options.body ? JSON.parse(options.body) : {};
+      const query = path.indexOf("?") === -1 ? "" : path.slice(path.indexOf("?") + 1);
+      const params = new URLSearchParams(query);
+      const clean = path.split("?")[0];
+      const parts = clean.split("/");
+      let name = "yams_state";
+      let args = { p_code: decodeURIComponent(parts[3] || ""), p_token: params.get("token") || "" };
+      if (clean === "/api/rooms") {
+        name = "yams_create_room";
+        args = {
+          p_name: body.name || "",
+          p_players: body.players || 1,
+          p_manches: body.manches || 1,
+          p_mode: body.mode || "virtual",
+          p_timed: Boolean(body.timed),
+          p_hints: body.hints !== false
+        };
+      } else if (clean === "/api/join") {
+        name = "yams_join_room";
+        args = { p_code: body.code || "", p_name: body.name || "", p_token: body.token || "" };
+      } else if (clean.endsWith("/roll")) {
+        name = "yams_roll";
+        args = {
+          p_code: decodeURIComponent(parts[3] || ""),
+          p_token: body.token || "",
+          p_hold: body.hold || [false, false, false, false, false]
+        };
+      } else if (clean.endsWith("/manche")) {
+        name = "yams_add_manche";
+        args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
+      } else if (clean.endsWith("/start")) {
+        name = "yams_start";
+        args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
+      } else if (clean.endsWith("/leave")) {
+        name = "yams_leave";
+        args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
+      } else if (clean.endsWith("/presence")) {
+        name = "yams_presence";
+        args = {
+          p_code: decodeURIComponent(parts[3] || ""),
+          p_token: body.token || "",
+          p_yes: Boolean(body.yes)
+        };
+      } else if (clean.endsWith("/name")) {
+        name = "yams_rename";
+        args = {
+          p_code: decodeURIComponent(parts[3] || ""),
+          p_token: body.token || "",
+          p_name: body.name || ""
+        };
+      } else if (clean.endsWith("/score")) {
+        name = "yams_score";
+        args = {
+          p_code: decodeURIComponent(parts[3] || ""),
+          p_token: body.token || "",
+          p_cat: body.cat || "",
+          p_manual: Boolean(body.manual),
+          p_value: body.value == null ? "" : String(body.value),
+          p_bar: Boolean(body.bar)
+        };
+      }
+      const response = await fetch(String(window.YAMS_SUPABASE_URL).replace(/\/$/, "") + "/rest/v1/rpc/" + name, {
+        method: "POST",
+        headers: {
+          apikey: window.YAMS_SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + window.YAMS_SUPABASE_ANON_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(args)
+      });
+      let data = {};
+      try { data = await response.json(); } catch (error) { data = {}; }
+      if (!response.ok) throw new Error(data.message || data.error || "La table ne répond pas.");
+      if (!data.ok) throw new Error(data.error || "La table ne répond pas.");
+      return data;
+    }
+
+    async function roomRequest(path, options) {
+      if (useSupabase()) return supabaseRoom(path, options || {});
+      const response = await fetch(tableBase() + path, options);
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || "La table ne répond pas.");
+      return data;
+    }
+
+    function applyRemote(data) {
+      const remote = data.state;
+      const nameInput = document.getElementById("settings-name");
+      const typingName = Boolean(nameInput && document.activeElement === nameInput && remote.you >= 0);
+      const keptName = typingName || pendingName !== null ? (pendingName !== null ? pendingName : state.players[remote.you].name) : null;
+      room.code = remote.code;
+      room.token = data.token || room.token;
+      room.you = remote.you;
+      room.turn = remote.turn;
+      room.phase = remote.phase;
+      room.playerCap = remote.playerCap || remote.players.length;
+      room.mancheCount = remote.mancheCount || 1;
+      room.manche = remote.manche || 0;
+      room.mode = remote.mode || "virtual";
+      room.hints = remote.hints !== false;
+      room.opening = Array.isArray(remote.opening) ? remote.opening : [];
+      room.order = Array.isArray(remote.order) ? remote.order : [];
+      room.error = "";
+      rememberRoom();
+      if (remote.revision === room.revision) return;
+      room.revision = remote.revision;
+      state.screen = "play";
+      state.playerCount = Math.max(1, remote.players.length);
+      state.mancheCount = clamp(room.mancheCount, 1, MANCHE_MAX, 1);
+      state.activeManche = clamp(room.manche, 0, state.mancheCount - 1, 0);
+      state.activePlayer = followSheet ? remote.turn : Math.max(0, remote.you);
+      state.hints = room.hints;
+      playMode = room.mode === "physical" ? "physical" : "virtual";
+      state.view = "players";
+      remote.players.forEach((player, index) => {
+        state.players[index].name = player.name;
+        const sheets = Array.isArray(player.scores) ? player.scores : [player.scores];
+        sheets.forEach((sheet, manche) => {
+          if (manche < MANCHE_MAX) fillScores(state.players[index].manches[manche], sheet);
+        });
+      });
+      if (keptName !== null && remote.you >= 0 && remote.you < state.players.length) {
+        state.players[remote.you].name = keptName;
+      }
+      room.snapshot = remote.you >= 0 ? Object.assign({}, state.players[remote.you].manches[state.activeManche]) : {};
+      if (playMode !== "physical" && Array.isArray(remote.dice) && Array.isArray(remote.held)) {
+        dice.faces = remote.dice.slice();
+        dice.held = remote.held.slice();
+        dice.rolls = remote.rolls;
+      }
+      saveState();
+      render();
+    }
+
+    async function refreshRoom() {
+      if (dice.busy || !room.token || !room.code) return;
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "?token=" + encodeURIComponent(room.token));
+        applyRemote(data);
+      } catch (error) {
+        if (String(error.message).indexOf("introuvable") !== -1) {
+          const code = room.code;
+          forgetRoom();
+          room.error = "La table " + code + " n'existe plus. Crée-en une nouvelle.";
+          render();
+          return;
+        }
+        room.error = error.message;
+        renderTray();
+      }
+    }
+
+    function ensureRoomPoll() {
+      if (roomTimer) return;
+      roomTimer = window.setInterval(refreshRoom, 1500);
+    }
+
+    function renderTray() {
+      if (dice.busy) return;
+      const tray = document.getElementById("tray");
+      const evolution = isEvolutionView();
+      tray.hidden = evolution || showGate() || inLobby();
+      renderLobby();
+      if (evolution || showGate() || inLobby()) return;
+      const online = Boolean(room.token);
+      const physical = playMode === "physical";
+      const badge = document.getElementById("seat-badge");
+      const badgeIndex = online ? room.you : state.activePlayer;
+      if (badge && badgeIndex >= 0) badge.textContent = playerName(badgeIndex);
+      const mine = yourTurn();
+      const playerIndex = online ? room.you : state.activePlayer;
+      document.getElementById("play-virtual").classList.toggle("is-active", !physical);
+      document.getElementById("play-physical").classList.toggle("is-active", physical);
+      document.getElementById("play-virtual").disabled = online;
+      document.getElementById("play-physical").disabled = online;
+      document.getElementById("dice-row").hidden = physical;
+      document.getElementById("dice-roll").hidden = physical;
+      document.getElementById("end-turn").hidden = !physical;
+      document.getElementById("dice-row").innerHTML = dice.faces.map((face, index) => {
+        const body = face ? dieMarkup(face) : `<span class="die-empty">?</span>`;
+        const disabled = !mine || dice.rolls === 0 || dice.rolls >= 3;
+        return `<button type="button" class="cube${dice.held[index] ? " is-held" : ""}" data-die="${index}" aria-pressed="${dice.held[index] ? "true" : "false"}" aria-label="Dé ${index + 1}"${disabled ? " disabled" : ""}>${body}</button>`;
+      }).join("");
+      const status = document.getElementById("dice-status");
+      if (room.error) status.textContent = room.error;
+      else if (online && room.phase === "done") status.textContent = "Table " + room.code + " · partie terminée";
+      else if (online && !mine) status.textContent = "Table " + room.code + " · au tour de " + playerName(room.turn);
+      else if (physical) status.textContent = online ? "Table " + room.code + " · marque ta case, puis termine le tour" : "Marque la case, puis termine le tour.";
+      else if (dice.rolls === 0) status.textContent = online ? "Table " + room.code + " · à toi de lancer" : "Lance les dés, puis touche une figure.";
+      else status.textContent = "Lancer " + dice.rolls + " / 3" + (dice.rolls < 3 ? " · touche un dé pour le garder" : "");
+      if (online && room.opening.some((face) => face > 0) && state.players.slice(0, state.playerCount).every((player) => !hasEntry(player.manches[state.activeManche]))) {
+        const draw = [];
+        for (let index = 0; index < state.playerCount; index += 1) {
+          if (room.opening[index]) draw.push(playerName(index) + " " + room.opening[index]);
+        }
+        if (draw.length) status.textContent = "Départ : " + draw.join(", ") + ". " + status.textContent;
+      }
+      const roll = document.getElementById("dice-roll");
+      roll.disabled = !mine || dice.rolls >= 3 || (online && room.phase !== "play");
+      roll.textContent = dice.rolls === 0 ? "Lancer" : "Relancer";
+      const scores = playerIndex >= 0 ? sheetAt(playerIndex).scores : emptyScores();
+      const open = ALL.filter((cat) => scores[cat.id] === "");
+      const scored = physical || !dice.rolls ? [] : open.map((cat) => {
+        return { id: cat.id, label: cat.label, points: scoreFor(cat.id, dice.faces), bar: false };
+      }).filter((idea) => idea.points > 0).sort((a, b) => b.points - a.points);
+      const lastRoll = !physical && dice.rolls >= 3;
+      const ideas = !state.hints ? [] : (scored.length
+        ? scored
+        : (lastRoll ? open.map((cat) => ({ id: cat.id, label: cat.label, bar: true })) : []));
+      if (state.hints && mine && lastRoll && ideas.some((idea) => idea.bar) && !room.error) {
+        status.textContent = "Aucune combinaison possible : barre une case.";
+      }
+      document.getElementById("dice-hints").innerHTML = mine ? ideas.map((idea, index) => {
+        if (idea.bar) {
+          return `<button type="button" class="hint-chip is-bar" data-mark="${idea.id}" data-bar="1">Barrer ${escapeHtml(idea.label)}</button>`;
+        }
+        return `<button type="button" class="hint-chip${index === 0 ? " is-best" : ""}" data-mark="${idea.id}">${escapeHtml(idea.label)} ${idea.points}</button>`;
+      }).join("") : "";
+      document.getElementById("room-leave").hidden = !online || inLobby();
+      syncNameField();
+      const note = document.getElementById("room-note");
+      note.hidden = online;
+      if (!online) {
+        note.textContent = physical
+          ? "Dés physiques : marque la case, puis termine le tour."
+          : "Les dés lancent sur ce téléphone.";
+      }
+    }
+
+    function advanceLocalSeat() {
+      if (!followSheet || state.playerCount < 2) return;
+      state.activePlayer = (state.activePlayer + 1) % state.playerCount;
+    }
+
+
+    function setPlayMode(mode) {
+      if (room.token || playMode === mode) return;
+      playMode = mode;
+      try { localStorage.setItem("yams-dice-play", mode); } catch (error) { /* stockage refusé */ }
+      resetDice();
+      render();
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    async function onRoll() {
+      if (!yourTurn() || dice.rolls >= 3 || dice.busy) return;
+      if (room.token && room.phase !== "play") return;
+      room.error = "";
+      dice.busy = true;
+      const status = document.getElementById("dice-status");
+      if (status) status.textContent = "Les dés tournent…";
+      document.getElementById("dice-roll").disabled = true;
+      const started = Date.now();
+      const tumble = window.setInterval(paintTumble, 90);
+      paintTumble();
+      let data = null;
+      let failed = "";
+      try {
+        if (!room.token) data = nextRoll();
+        else {
+          data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/roll", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: room.token, hold: dice.held })
+          });
+        }
+        const wait = 3000 - (Date.now() - started);
+        if (wait > 0) await sleep(wait);
+      } catch (error) {
+        failed = error.message;
+      } finally {
+        window.clearInterval(tumble);
+        dice.busy = false;
+      }
+      if (failed) {
+        room.error = failed;
+        render();
+        return;
+      }
+      if (!room.token) {
+        dice.faces = data.faces;
+        dice.held = data.held;
+        dice.rolls += 1;
+        render();
+        return;
+      }
+      room.revision = 0;
+      applyRemote(data);
+    }
+
+    async function onEndTurn() {
+      if (playMode !== "physical" || !yourTurn()) return;
+      room.error = "";
+      if (!room.token) {
+        resetDice();
+        advanceLocalSeat();
+        saveState();
+        render();
+        return;
+      }
+      const changes = pendingDiff();
+      if (changes.length === 0) {
+        room.error = "Marque une case, puis termine le tour.";
+        renderTray();
+        return;
+      }
+      if (changes.length > 1) {
+        room.error = "Une seule case par tour.";
+        renderTray();
+        return;
+      }
+      const change = changes[0];
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: room.token,
+            cat: change.id,
+            manual: true,
+            value: change.value,
+            bar: change.value === "x"
+          })
+        });
+        room.revision = 0;
+        resetDice();
+        applyRemote(data);
+      } catch (error) {
+        room.error = error.message;
+        renderTray();
+      }
+    }
+
+    function askBar(label, run) {
+      barPending = run;
+      document.getElementById("bar-text").textContent = "Barrer " + label + " ? Elle comptera zéro.";
+      document.getElementById("bar-dialog").hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeBar() {
+      document.getElementById("bar-dialog").hidden = true;
+      barPending = null;
+      if (document.getElementById("dialog").hidden && document.getElementById("tutorial").hidden) document.body.style.overflow = "";
+    }
+
+    async function onMark(catId, bar, confirmed) {
+      if (playMode === "physical") return;
+      if (!yourTurn() || dice.rolls < 1) return;
+      const playerIndex = room.token ? room.you : state.activePlayer;
+      if (playerIndex < 0 || sheetAt(playerIndex).scores[catId] !== "") return;
+      const points = scoreFor(catId, dice.faces);
+      if (!bar && points <= 0) return;
+      if (bar && !confirmed) {
+        askBar(categoryById(catId).label, () => onMark(catId, true, true));
+        return;
+      }
+      if (!room.token) {
+        const row = document.querySelector('#panel-' + playerIndex + ' [data-cat="' + catId + '"]');
+        if (row) applyScore(row, bar ? "x" : String(points));
+        resetDice();
+        advanceLocalSeat();
+        saveState();
+        render();
+        return;
+      }
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: room.token, cat: catId, bar: Boolean(bar) })
+        });
+        room.revision = 0;
+        applyRemote(data);
+      } catch (error) {
+        room.error = error.message;
+        renderTray();
+      }
+    }
+
+    function playerLabel() {
+      return state.players[nameIndex()].name.trim();
+    }
+
+    const draft = { players: 1, manches: 1, mode: "virtual", hints: true, online: false, names: [] };
+
+    function inLobby() {
+      return Boolean(room.token) && room.phase === "lobby";
+    }
+
+    function showGate() {
+      return !room.token && state.screen !== "play";
+    }
+
+    function paintSwitch(id, on) {
+      const button = document.getElementById(id);
+      button.classList.toggle("is-on", on);
+      button.setAttribute("aria-checked", on ? "true" : "false");
+    }
+
+    function renderDraft() {
+      if (draft.online) draft.mode = "virtual";
+      document.getElementById("create-player-value").textContent = String(draft.players);
+      document.getElementById("create-manche-value").textContent = String(draft.manches);
+      const diceSwitch = document.getElementById("create-dice");
+      paintSwitch("create-dice", !draft.online && draft.mode === "physical");
+      diceSwitch.disabled = draft.online;
+      diceSwitch.title = draft.online ? "En ligne, les dés du téléphone sont utilisés." : "";
+      paintSwitch("create-hints", draft.hints);
+      document.getElementById("create-local").classList.toggle("is-active", !draft.online);
+      document.getElementById("create-online").classList.toggle("is-active", draft.online);
+      paintCreateNames();
+    }
+
+    function paintCreateNames() {
+      const box = document.getElementById("create-names");
+      if (!box) return;
+      const extras = Math.max(0, draft.players - 1);
+      box.hidden = draft.online || extras === 0;
+      if (draft.online || extras === 0) return;
+      const inputs = box.querySelectorAll("input");
+      inputs.forEach((input, index) => { draft.names[index + 1] = input.value; });
+      if (inputs.length === extras) return;
+      box.replaceChildren();
+      for (let index = 1; index <= extras; index += 1) {
+        const label = document.createElement("label");
+        label.className = "field";
+        label.append(document.createTextNode("Joueur " + (index + 1)));
+        const input = document.createElement("input");
+        input.maxLength = 24;
+        input.autocomplete = "off";
+        input.placeholder = "Joueur " + (index + 1);
+        input.value = draft.names[index] || "";
+        label.append(input);
+        box.append(label);
+      }
+    }
+
+    function renderLobby() {
+      const lobby = document.getElementById("lobby");
+      const visible = inLobby();
+      lobby.hidden = !visible;
+      if (!visible) return;
+      document.getElementById("lobby-code").textContent = room.code;
+      const names = [];
+      for (let index = 0; index < state.playerCount; index += 1) names.push(playerName(index));
+      document.getElementById("lobby-players").innerHTML = names.map((name) => `<li>${escapeHtml(name)}</li>`).join("");
+      const full = state.playerCount >= (room.playerCap || state.playerCount);
+      const note = document.getElementById("lobby-note");
+      note.textContent = room.error
+        ? room.error
+        : (full
+          ? "La table est complète. L'hôte peut lancer, même s'il est seul."
+          : "En attente : " + state.playerCount + " / " + (room.playerCap || state.playerCount) + ". La porte se ferme au lancement.");
+      const start = document.getElementById("lobby-start");
+      start.hidden = room.you !== 0;
+      document.getElementById("lobby-note").textContent += room.notice ? " " + room.notice : "";
+    }
+
+    function renderSettings() {
+      const place = room.token ? "En ligne · " + room.code : "Sur ce téléphone";
+      const rows = [
+        ["Joueurs", String(room.token ? (room.playerCap || state.playerCount) : state.playerCount), "Nombre maximum de joueurs. La porte se ferme quand il est atteint, ou dès le lancement."],
+        ["Manches", String(state.mancheCount), "Grilles prévues. Nouvelle partie, en bas, ajoute une manche et garde les précédentes."],
+        ["Dés", playMode === "physical" ? "Physiques" : "Du téléphone", "Dés du téléphone : trois lancers communs. Dés physiques : chacun lance les siens."],
+        ["Aide", state.hints ? "Oui" : "Non", "Propose une combinaison, ou de barrer une case quand rien n'est possible."],
+        ["Table", place, "Sur ce téléphone : sans connexion. En ligne : les autres rejoignent avec le code."]
+      ];
+      document.getElementById("settings-list").innerHTML = rows.map((row, index) => {
+        const helpId = "settings-help-" + index;
+        return `<li><span class="setting-label">${escapeHtml(row[0])}</span><strong class="setting-value">${escapeHtml(row[1])}</strong><button type="button" class="help-btn" data-help="${helpId}" aria-label="Explication de ${escapeHtml(row[0])}">?</button></li><p class="help-text" id="${helpId}" hidden>${escapeHtml(row[2])}</p>`;
+      }).join("");
+      syncNameField();
+    }
+
+    function clearSheets() {
+      state.players.forEach((player) => {
+        player.manches = Array.from({ length: MANCHE_MAX }, emptyScores);
+      });
+    }
+
+    async function beginGame() {
+      const mine = (window.Prefs ? Prefs.playerName() : "").slice(0, 24);
+      state.players[0].name = mine;
+      let name = mine;
+      if (!draft.online) {
+        const inputs = document.querySelectorAll("#create-names input");
+        for (let index = 1; index < draft.players; index += 1) {
+          const typed = inputs[index - 1] ? inputs[index - 1].value.slice(0, 24) : "";
+          draft.names[index] = typed;
+          state.players[index].name = typed;
+        }
+        name = state.players[0].name;
+      }
+      state.playerCount = draft.players;
+      state.mancheCount = draft.manches;
+      state.activePlayer = 0;
+      state.activeManche = 0;
+      state.timed = false;
+      state.hints = draft.hints;
+      playMode = draft.online ? "virtual" : draft.mode;
+      if (!draft.online) {
+        try { localStorage.setItem("yams-dice-play", playMode); } catch (error) { /* stockage refusé */ }
+      }
+      clearSheets();
+      if (!draft.online) {
+        state.screen = "play";
+        saveState();
+        render();
+        return;
+      }
+      try {
+        const data = await roomRequest("/api/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            players: draft.players,
+            manches: draft.manches,
+            mode: "virtual",
+            timed: false,
+            hints: draft.hints
+          })
+        });
+        room.revision = 0;
+        applyRemote(data);
+        ensureRoomPoll();
+      } catch (error) {
+        state.screen = "create";
+        const createError = document.getElementById("create-error");
+        if (createError) createError.textContent = error.message;
+        render();
+      }
+    }
+
+    async function copyInvite() {
+      const text = "Je vous invite sur ma partie de Yams en ligne. Pour me rejoindre, utilise le code : " + room.code + ".";
+      try {
+        if (navigator.share) {
+          await navigator.share({ text });
+          return;
+        }
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        room.notice = "Invitation copiée.";
+      } catch (error) {
+        room.notice = text;
+      }
+      renderLobby();
+    }
+
+    async function addManche() {
+      if (state.mancheCount >= MANCHE_MAX) {
+        room.error = "Cinq manches maximum.";
+        render();
+        return;
+      }
+      if (!room.token) {
+        state.mancheCount += 1;
+        state.activeManche = state.mancheCount - 1;
+        dice.faces = [0, 0, 0, 0, 0];
+        dice.held = [false, false, false, false, false];
+        dice.rolls = 0;
+        room.error = "";
+        saveState();
+        render();
+        return;
+      }
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/manche", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: room.token })
+        });
+        room.revision = 0;
+        room.error = "";
+        applyRemote(data);
+      } catch (error) {
+        room.error = error.message;
+        renderTray();
+      }
+    }
+
+    async function startMatch() {
+      room.error = "";
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: room.token })
+        });
+        room.revision = 0;
+        applyRemote(data);
+      } catch (error) {
+        room.error = error.message;
+        renderLobby();
+      }
+    }
+
+    function tutorialDone() {
+      try { return localStorage.getItem("yams-tutorial") === "1"; } catch (error) { return true; }
+    }
+
+    function finishTutorial() {
+      try { localStorage.setItem("yams-tutorial", "1"); } catch (error) { /* stockage refusé */ }
+      document.getElementById("tutorial").hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    function paintTutorial() {
+      const step = TUTORIAL[tutorialStep];
+      document.getElementById("tutorial-count").textContent = (tutorialStep + 1) + " / " + TUTORIAL.length;
+      document.getElementById("tutorial-title").textContent = step[0];
+      document.getElementById("tutorial-copy").textContent = step[1];
+      document.getElementById("tutorial-next").textContent = tutorialStep === TUTORIAL.length - 1 ? "Commencer" : "Suivant";
+    }
+
+    function maybeTutorial() {
+      const dialog = document.getElementById("tutorial");
+      if (tutorialDone()) {
+        dialog.hidden = true;
+        return;
+      }
+      paintTutorial();
+      dialog.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function sheetsComplete() {
+      for (let player = 0; player < state.playerCount; player += 1) {
+        for (let manche = 0; manche < state.mancheCount; manche += 1) {
+          const scores = state.players[player].manches[manche];
+          if (ALL.some((cat) => scores[cat.id] === "")) return false;
+        }
+      }
+      return true;
+    }
+
+    function maybePodium() {
+      const dialog = document.getElementById("podium-dialog");
+      const finished = sheetsComplete() || (Boolean(room.token) && room.phase === "done");
+      if (state.screen !== "play" || !finished || inLobby()) return;
+      const totals = [];
+      for (let index = 0; index < state.playerCount; index += 1) totals.push(playerTotal(index));
+      const key = state.playerCount + "x" + state.mancheCount + ":" + totals.join(",");
+      if (key === podiumKey) return;
+      podiumKey = key;
+      const people = [];
+      for (let index = 0; index < state.playerCount; index += 1) {
+        people.push({ index, name: playerName(index), total: playerTotal(index) });
+      }
+      const ranked = people.slice().sort((a, b) => b.total - a.total || a.index - b.index);
+      let body = `<p>Partie terminée.</p>`;
+      if (people.length === 1) {
+        body += `<p class="evo-note">${escapeHtml(people[0].name)} · ${people[0].total} pts</p>`;
+      } else {
+        const places = ranked.slice(0, 3);
+        const order = places.length === 2 ? [places[1], places[0]] : [places[1], places[0], places[2]].filter(Boolean);
+        body += `<div class="podium ${places.length === 2 ? "is-duo" : "is-trio"}">${order.map((person) => {
+          const place = ranked.indexOf(person) + 1;
+          return `<div class="place place-${place}"><span class="rank">${place}</span><span class="who">${escapeHtml(person.name)}</span><span class="pts">${person.total}</span></div>`;
+        }).join("")}</div>`;
+        body += `<ul class="lobby-list">${ranked.map((person, index) => `<li>${index + 1}. ${escapeHtml(person.name)} · ${person.total} pts</li>`).join("")}</ul>`;
+      }
+      document.getElementById("podium-body").innerHTML = body;
+      dialog.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function paintLink(online) {
+      const mark = document.getElementById("link-mark");
+      if (!mark) return;
+      mark.classList.toggle("is-online", online);
+      const label = online ? "En ligne" : "Sur ce téléphone";
+      mark.title = label;
+      mark.setAttribute("aria-label", label);
+    }
+
+    function render() {
+      const evolution = isEvolutionView();
+      const current = book();
+      const online = Boolean(room.token);
+      paintLink(online);
+      const gateOn = showGate();
+      const lobbyOn = inLobby();
+      document.getElementById("gate").hidden = !gateOn;
+      document.getElementById("gate-create-form").hidden = !gateOn;
+      if (gateOn) renderDraft();
+      document.getElementById("intro").hidden = gateOn;
+      document.querySelector(".game-tools").hidden = state.screen !== "play";
+      document.querySelector(".modes").hidden = gateOn;
+      document.getElementById("reset").hidden = gateOn || lobbyOn;
+      document.getElementById("reset-top").hidden = state.screen !== "play";
+      if (gateOn) {
+        document.getElementById("meters").hidden = true;
+        document.getElementById("setup-toggle").hidden = true;
+        document.getElementById("tabs").hidden = true;
+        document.getElementById("tray").hidden = true;
+        document.getElementById("lobby").hidden = true;
+        document.getElementById("panels").hidden = true;
+        document.getElementById("evolution").hidden = true;
+        document.querySelector(".pager").hidden = true;
+        const context = document.getElementById("context");
+        context.hidden = true;
+        context.innerHTML = "";
+        maybeTutorial();
+        return;
+      }
+      document.getElementById("tutorial").hidden = true;
+      document.getElementById("panels").hidden = lobbyOn || evolution;
+      document.getElementById("player-count-value").textContent = String(state.playerCount);
+      document.getElementById("manche-count-value").textContent = String(state.mancheCount);
+      document.getElementById("player-unit").textContent = state.playerCount > 1 ? "joueurs" : "joueur";
+      document.getElementById("manche-unit").textContent = state.mancheCount > 1 ? "manches" : "manche";
+      const started = matchStarted();
+      document.getElementById("meters").hidden = true;
+      const setupToggle = document.getElementById("setup-toggle");
+      setupToggle.hidden = true;
+      setupToggle.textContent = state.playerCount + " " + (state.playerCount > 1 ? "joueurs" : "joueur")
+        + " · " + state.mancheCount + " " + (state.mancheCount > 1 ? "manches" : "manche");
+      setupToggle.setAttribute("aria-expanded", setupOpen ? "true" : "false");
+      document.getElementById("less-players").disabled = online || state.playerCount <= 1;
+      document.getElementById("more-players").disabled = online || state.playerCount >= PLAYER_MAX;
+      document.getElementById("less-manches").disabled = online || state.mancheCount <= 1;
+      document.getElementById("more-manches").disabled = online || state.mancheCount >= MANCHE_MAX;
+      document.getElementById("tabs").hidden = evolution || state.playerCount < 2;
+      document.getElementById("mode-players").classList.toggle("is-active", !evolution);
+      document.getElementById("mode-evolution").classList.toggle("is-active", evolution);
+      document.getElementById("mode-players").setAttribute("aria-selected", evolution ? "false" : "true");
+      document.getElementById("mode-evolution").setAttribute("aria-selected", evolution ? "true" : "false");
+      document.getElementById("intro").textContent = evolution
+        ? "Le podium si vous êtes plusieurs, et l'évolution manche après manche."
+        : online
+          ? "Table " + room.code + "."
+          : "";
+      document.querySelector(".pager").hidden = evolution || (state.playerCount < 2 && state.mancheCount < 2);
+      renderContext();
+      if (evolution) {
+        document.getElementById("tabs").innerHTML = "";
+        document.getElementById("panels").innerHTML = "";
+        document.getElementById("evolution").hidden = false;
+        document.getElementById("evolution").innerHTML = evolutionMarkup();
+        saveState();
+        renderTray();
+        maybePodium();
+        return;
+      }
+      document.getElementById("evolution").hidden = true;
+      document.getElementById("evolution").innerHTML = "";
+
+      const tabs = [];
+      const panels = [];
+      for (let index = 0; index < current.count; index += 1) {
+        const emptyName = sheetAt(index).name.trim() === "";
+        const seat = "#" + (index + 1);
+        tabs.push(`<button type="button" class="tab${emptyName ? " is-empty" : ""}" role="tab" id="tab-${index}" data-tab="${index}" aria-selected="false" aria-controls="panel-${index}">
+          <span class="seat">${seat}</span>
+          <span class="who">${escapeHtml(displayName(index))}</span>
+          <span class="pts">0</span>
+        </button>`);
+
+        panels.push(`<section class="panel" id="panel-${index}" data-sheet="${index}" role="tabpanel" aria-labelledby="tab-${index}">
+          ${identityMarkup(index)}
+          <h2 class="section-title">Partie supérieure</h2>
+          <div class="rows">
+            ${UPPER.map((cat) => scoreRow(index, cat)).join("")}
+            ${totalRow("upper", "Total")}
+            ${totalRow("bonus", "Bonus", "bonus-hint")}
+            ${totalRow("upper-total", "Total partie supérieure")}
+          </div>
+          <h2 class="section-title">Partie inférieure</h2>
+          <div class="rows">
+            ${LOWER.map((cat) => scoreRow(index, cat)).join("")}
+            ${totalRow("lower", "Total partie inférieure")}
+          </div>
+          <div class="row row-score">
+            <div class="label"><span><strong>Score</strong></span></div>
+            <strong class="num" data-field="score" aria-live="polite">0</strong>
+          </div>
+        </section>`);
+      }
+
+      document.getElementById("tabs").innerHTML = tabs.join("");
+      document.getElementById("panels").innerHTML = panels.join("");
+      refreshAll();
+      showPlayer(current.active, false);
+      renderTray();
+      maybePodium();
+    }
+
+    function refresh(index) {
+      const result = compute(sheetAt(index));
+      const panel = document.getElementById("panel-" + index);
+      if (!panel) return;
+      panel.querySelector('[data-field="upper"]').textContent = String(result.upper);
+      panel.querySelector('[data-field="bonus"]').textContent = String(result.bonus);
+      panel.querySelector('[data-field="bonus-hint"]').textContent = result.hint;
+      panel.querySelector('[data-field="upper-total"]').textContent = String(result.upperTotal);
+      panel.querySelector('[data-field="lower"]').textContent = String(result.lower);
+      panel.querySelector('[data-field="score"]').textContent = String(result.score);
+      panel.querySelector(".row-bonus").classList.toggle("is-won", result.bonus > 0);
+
+      const sheetTitle = panel.querySelector(".sheet-name");
+      if (sheetTitle) sheetTitle.textContent = playerName(index);
+      const tab = document.getElementById("tab-" + index);
+      if (!tab) return;
+      tab.querySelector(".who").textContent = displayName(index);
+      tab.querySelector(".pts").textContent = String(result.score);
+      tab.classList.toggle("is-empty", sheetAt(index).name.trim() === "");
+    }
+
+    function refreshAll() {
+      const current = book();
+      const scores = [];
+      for (let index = 0; index < current.count; index += 1) {
+        refresh(index);
+        scores.push(compute(sheetAt(index)).score);
+      }
+      const best = Math.max(...scores);
+      document.querySelectorAll("#tabs .tab").forEach((tab) => {
+        const index = Number(tab.dataset.tab);
+        const started = Object.values(sheetAt(index).scores).some((value) => value !== "");
+        tab.classList.toggle("is-leader", started && scores[index] === best && best > 0);
+      });
+    }
+
+    function showPlayer(index, scroll) {
+      book().active = index;
+      document.querySelectorAll(".panel").forEach((panel) => {
+        const on = Number(panel.dataset.sheet) === index;
+        panel.classList.toggle("is-active", on);
+        panel.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      document.querySelectorAll("#tabs .tab").forEach((tab) => {
+        const on = Number(tab.dataset.tab) === index;
+        tab.classList.toggle("is-active", on);
+        tab.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      saveState();
+      if (!scroll) return;
+      const behavior = motionQuery.matches ? "auto" : "smooth";
+      const tab = document.getElementById("tab-" + index);
+      if (tab) tab.scrollIntoView({ inline: "center", block: "nearest", behavior });
+      const panel = document.getElementById("panel-" + index);
+      const bar = document.querySelector(".topbar").offsetHeight;
+      const top = panel.getBoundingClientRect().top + window.scrollY - bar - 8;
+      window.scrollTo({ top: Math.max(0, top), behavior });
+    }
+
+    function step(delta) {
+      if (state.playerCount > 1) {
+        const next = (state.activePlayer + delta + state.playerCount) % state.playerCount;
+        showPlayer(next, true);
+        return;
+      }
+      state.activeManche = (state.activeManche + delta + state.mancheCount) % state.mancheCount;
+      saveState();
+      render();
+    }
+
+    function setPlayerCount(count) {
+      state.playerCount = clamp(count, 1, PLAYER_MAX, state.playerCount);
+      if (state.activePlayer > state.playerCount - 1) state.activePlayer = state.playerCount - 1;
+      saveState();
+      render();
+    }
+
+    function setMancheCount(count) {
+      state.mancheCount = clamp(count, 1, MANCHE_MAX, state.mancheCount);
+      if (state.activeManche > state.mancheCount - 1) state.activeManche = state.mancheCount - 1;
+      saveState();
+      render();
+    }
+
+    function setMode(mode) {
+      if (state.view === mode) return;
+      state.view = mode;
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: motionQuery.matches ? "auto" : "smooth" });
+    }
+
+    function categoryById(catId) {
+      return ALL.find((cat) => cat.id === catId);
+    }
+
+    function applyScore(row, value) {
+      const playerIndex = Number(row.dataset.sheet);
+      const catId = row.dataset.cat;
+      const cat = categoryById(catId);
+      sheetAt(playerIndex).scores[catId] = value;
+      const barred = value === "x";
+      row.classList.toggle("is-barred", barred);
+      const bar = row.querySelector(".bar");
+      bar.setAttribute("aria-pressed", barred ? "true" : "false");
+      bar.setAttribute("aria-label", (barred ? "Annuler le barrage " : "Barrer ") + cat.label);
+      const chip = row.querySelector(".chip");
+      if (chip) chip.setAttribute("aria-pressed", value === chip.dataset.value ? "true" : "false");
+      const input = row.querySelector("input.score");
+      if (input) {
+        input.disabled = barred || inputLocked(playerIndex, catId);
+        input.classList.toggle("is-set", value !== "" && !barred);
+        if (barred) input.value = "";
+        else if (document.activeElement !== input) input.value = value;
+      }
+      const chipButton = row.querySelector(".chip");
+      if (chipButton) chipButton.disabled = controlLocked(playerIndex, catId);
+      bar.disabled = controlLocked(playerIndex, catId);
+      saveState();
+      refreshAll();
+    }
+
+    function onScoreInput(input) {
+      if (room.token && playMode !== "physical") {
+        render();
+        return;
+      }
+      if (room.token && Number(input.closest(".row").dataset.sheet) !== room.you) {
+        render();
+        return;
+      }
+      const row = input.closest(".row");
+      const max = Number(input.dataset.max);
+      const clean = sanitizeScore(input.value, max);
+      if (input.value !== clean) input.value = clean;
+      applyScore(row, clean);
+    }
+
+    function onChip(chip) {
+      const row = chip.closest(".row");
+      if (room.token && playMode === "virtual") {
+        onMark(row.dataset.cat, scoreFor(row.dataset.cat, dice.faces) <= 0);
+        return;
+      }
+      if (room.token && playMode === "physical") {
+        if (Number(row.dataset.sheet) !== room.you || savedValue(row.dataset.cat) !== "") return;
+        const cat = categoryById(row.dataset.cat);
+        const current = sheetAt(room.you).scores[cat.id];
+        applyScore(row, current === String(cat.fixed) ? "" : String(cat.fixed));
+        return;
+      }
+      const playerIndex = Number(row.dataset.sheet);
+      const catId = row.dataset.cat;
+      const current = sheetAt(playerIndex).scores[catId];
+      applyScore(row, current === chip.dataset.value ? "" : chip.dataset.value);
+    }
+
+    function commitBar(row) {
+      const playerIndex = Number(row.dataset.sheet);
+      const catId = row.dataset.cat;
+      const current = sheetAt(playerIndex).scores[catId];
+      applyScore(row, current === "x" ? "" : "x");
+    }
+
+    function onBar(button) {
+      const row = button.closest(".row");
+      if (room.token && playMode === "virtual") {
+        onMark(row.dataset.cat, true);
+        return;
+      }
+      if (room.token && playMode === "physical") {
+        if (Number(row.dataset.sheet) !== room.you || savedValue(row.dataset.cat) !== "") return;
+      }
+      const playerIndex = Number(row.dataset.sheet);
+      const catId = row.dataset.cat;
+      const current = sheetAt(playerIndex).scores[catId];
+      if (current === "x") {
+        commitBar(row);
+        return;
+      }
+      askBar(categoryById(catId).label, () => commitBar(row));
+    }
+
+    function onName(input) {
+      const index = input.dataset.sheet == null ? nameIndex() : Number(input.dataset.sheet);
+      if (!state.players[index]) return;
+      state.players[index].name = input.value.slice(0, 24);
+      saveState();
+      refresh(index);
+      if (room.token && index === room.you) {
+        pendingName = state.players[index].name;
+        window.clearTimeout(renameTimer);
+        renameTimer = window.setTimeout(pushName, 400);
+      }
+    }
+
+    async function pushName() {
+      if (!room.token || pendingName === null) return;
+      const name = pendingName;
+      try {
+        const data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/name", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: room.token, name })
+        });
+        if (pendingName === name) pendingName = null;
+        room.revision = 0;
+        applyRemote(data);
+      } catch (error) {
+        room.error = error.message;
+        renderTray();
+      }
+    }
+
+    function openLeaveDialog() {
+      const dialog = document.getElementById("leave-dialog");
+      const text = document.getElementById("leave-text");
+      text.textContent = room.phase === "done"
+        ? "La partie est finie. Ta place est retirée de la table."
+        : "La partie continue pour les autres. Tu pourras revenir avec le même code et le même nom.";
+      dialog.hidden = false;
+      document.body.style.overflow = "hidden";
+      document.getElementById("leave-cancel").focus();
+    }
+
+    function releaseSeat() {
+      const code = room.code;
+      const token = room.token;
+      if (!token || room.phase !== "done" || !useSupabase()) return;
+      roomRequest("/api/rooms/" + encodeURIComponent(code) + "/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      }).catch(() => {});
+    }
+
+    function closeLeaveDialog() {
+      document.getElementById("leave-dialog").hidden = true;
+      if (document.getElementById("dialog").hidden) document.body.style.overflow = "";
+    }
+
+    function openDialog() {
+      const dialog = document.getElementById("dialog");
+      dialog.hidden = false;
+      document.body.style.overflow = "hidden";
+      document.getElementById("reset-confirm").focus();
+    }
+
+    function closeDialog() {
+      document.getElementById("dialog").hidden = true;
+      document.body.style.overflow = "";
+      document.getElementById("reset").focus();
+    }
+
+    function clearMatch() {
+      closeDialog();
+      releaseSeat();
+      if (room.token) forgetRoom();
+      state.screen = "create";
+      state.view = "players";
+      state.timed = false;
+      state.hints = true;
+      state.playerCount = 1;
+      state.mancheCount = 1;
+      state.activePlayer = 0;
+      state.activeManche = 0;
+      state.players = Array.from({ length: PLAYER_MAX }, blankPlayer);
+      playMode = "virtual";
+      draft.players = 1;
+      draft.manches = 1;
+      draft.mode = "virtual";
+      draft.hints = true;
+      draft.online = false;
+      draft.names = [];
+      const namesBox = document.getElementById("create-names");
+      if (namesBox) namesBox.replaceChildren();
+      resetDice();
+      try { localStorage.setItem("yams-dice-play", "virtual"); } catch (error) { /* stockage refusé */ }
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: motionQuery.matches ? "auto" : "smooth" });
+    }
+
+    document.addEventListener("input", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      if (target.classList.contains("score")) onScoreInput(target);
+      if (target.classList.contains("name-input")) onName(target);
+    });
+
+    document.addEventListener("click", (event) => {
+      const die = event.target.closest("[data-die]");
+      if (die && !die.disabled) {
+        dice.held[Number(die.dataset.die)] = !dice.held[Number(die.dataset.die)];
+        renderTray();
+        return;
+      }
+      const hint = event.target.closest("[data-mark]");
+      if (hint) {
+        onMark(hint.dataset.mark, hint.dataset.bar === "1");
+        return;
+      }
+      if (event.target.id === "dice-roll") onRoll();
+      if (event.target.id === "end-turn") onEndTurn();
+      if (event.target.id === "play-virtual") setPlayMode("virtual");
+      if (event.target.id === "play-physical") setPlayMode("physical");
+      if (event.target.id === "setup-toggle") {
+        setupOpen = !setupOpen;
+        render();
+      }
+      if (event.target.closest("#page-back")) {
+        if (room.token) openLeaveDialog();
+        else window.location.href = "index.html";
+        return;
+      }
+      if (event.target.id === "create-less-players") { draft.players = Math.max(1, draft.players - 1); renderDraft(); }
+      if (event.target.id === "create-more-players") { draft.players = Math.min(PLAYER_MAX, draft.players + 1); renderDraft(); }
+      if (event.target.id === "create-less-manches") { draft.manches = Math.max(1, draft.manches - 1); renderDraft(); }
+      if (event.target.id === "create-more-manches") { draft.manches = Math.min(MANCHE_MAX, draft.manches + 1); renderDraft(); }
+      if (event.target.closest("#create-dice")) {
+        if (!draft.online) {
+          draft.mode = draft.mode === "physical" ? "virtual" : "physical";
+          renderDraft();
+        }
+      }
+      if (event.target.closest("#create-hints")) { draft.hints = !draft.hints; renderDraft(); }
+      if (event.target.id === "create-local") { draft.online = false; renderDraft(); }
+      if (event.target.id === "create-online") { draft.online = true; draft.mode = "virtual"; renderDraft(); }
+      if (event.target.id === "create-go") beginGame();
+      if (event.target.id === "lobby-copy") copyInvite();
+      if (event.target.id === "lobby-start") startMatch();
+      if (event.target.id === "settings-open") {
+        renderSettings();
+        document.getElementById("settings-dialog").hidden = false;
+      }
+      if (event.target.id === "settings-close" || event.target.id === "settings-dialog") {
+        document.getElementById("settings-dialog").hidden = true;
+      }
+      if (event.target.id === "room-leave" || event.target.id === "room-leave-lobby") openLeaveDialog();
+      if (event.target.id === "leave-cancel" || event.target.id === "leave-dialog") closeLeaveDialog();
+      if (event.target.id === "leave-confirm") {
+        closeLeaveDialog();
+        releaseSeat();
+        forgetRoom();
+        window.location.href = "index.html";
+        return;
+      }
+      const tab = event.target.closest("#tabs [data-tab]");
+      if (tab) {
+        showPlayer(Number(tab.dataset.tab), true);
+        return;
+      }
+      const bar = event.target.closest(".bar");
+      if (bar) {
+        onBar(bar);
+        return;
+      }
+      const chip = event.target.closest(".chip");
+      if (chip) {
+        onChip(chip);
+        return;
+      }
+      const manchePick = event.target.closest("#context [data-manche]");
+      if (manchePick) {
+        state.activeManche = Number(manchePick.dataset.manche);
+        saveState();
+        render();
+        return;
+      }
+      if (event.target.id === "mode-players") setMode("players");
+      if (event.target.id === "mode-evolution") setMode("evolution");
+      if (event.target.id === "prev") step(-1);
+      if (event.target.id === "next") step(1);
+      if (event.target.id === "less-players") setPlayerCount(state.playerCount - 1);
+      if (event.target.id === "more-players") setPlayerCount(state.playerCount + 1);
+      if (event.target.id === "less-manches") setMancheCount(state.mancheCount - 1);
+      if (event.target.id === "more-manches") setMancheCount(state.mancheCount + 1);
+      const helpButton = event.target.closest(".help-btn");
+      if (helpButton) {
+        const line = document.getElementById(helpButton.dataset.help);
+        if (line) line.hidden = !line.hidden;
+        return;
+      }
+      if (event.target.id === "reset") addManche();
+      if (event.target.id === "reset-top") openDialog();
+      if (event.target.id === "reset-confirm") clearMatch();
+      if (event.target.id === "dialog-cancel") closeDialog();
+      if (event.target.id === "tutorial-skip") finishTutorial();
+      if (event.target.id === "tutorial-next") {
+        if (tutorialStep >= TUTORIAL.length - 1) finishTutorial();
+        else {
+          tutorialStep += 1;
+          paintTutorial();
+        }
+      }
+      if (event.target.id === "bar-yes" && barPending) {
+        const run = barPending;
+        closeBar();
+        run();
+      }
+      if (event.target.id === "bar-no") closeBar();
+      if (event.target.id === "podium-close") {
+        document.getElementById("podium-dialog").hidden = true;
+        document.body.style.overflow = "";
+      }
+      if (event.target.id === "dialog") closeDialog();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !document.getElementById("leave-dialog").hidden) {
+        closeLeaveDialog();
+        return;
+      }
+      if (event.key === "Escape" && !document.getElementById("settings-dialog").hidden) {
+        document.getElementById("settings-dialog").hidden = true;
+        return;
+      }
+      if (event.key === "Escape" && !document.getElementById("dialog").hidden) {
+        closeDialog();
+        return;
+      }
+      if (event.key !== "Enter") return;
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      const panel = target.closest(".panel");
+      if (!panel) return;
+      event.preventDefault();
+      const inputs = [...panel.querySelectorAll("input.score:not(:disabled)")];
+      if (target.classList.contains("name-input")) {
+        if (inputs[0]) inputs[0].focus();
+        return;
+      }
+      const index = inputs.indexOf(target);
+      if (inputs[index + 1]) inputs[index + 1].focus();
+      else target.blur();
+    });
+
+    if (room.token) {
+      state.screen = "play";
+      ensureRoomPoll();
+      refreshRoom();
+    }
+    render();
+  </script>
+</body>
+</html>
