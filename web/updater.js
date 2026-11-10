@@ -1,4 +1,4 @@
-// Bandeau de mise à jour. Windows installe puis relance. Android ouvre l'APK.
+// Bandeau de mise à jour Android. Le téléchargement de l'APK s'ouvre dans le navigateur.
 (function () {
   const REPO = "Rory-Mercury-91/Arcades-Rory";
   const DISMISS_KEY = "yams-dismissed-update";
@@ -25,17 +25,6 @@
       if ((left[index] || 0) < (right[index] || 0)) return false;
     }
     return false;
-  }
-
-  function channel() {
-    const id = internals().transformCallback(function () {});
-    return { __TAURI_TO_IPC_KEY__: function () { return "__CHANNEL__:" + id; } };
-  }
-
-  async function checkDesktop() {
-    const metadata = await invoke("plugin:updater|check");
-    if (!metadata || !metadata.version) return null;
-    return { kind: "desktop", version: metadata.version, rid: metadata.rid };
   }
 
   async function checkAndroid() {
@@ -134,9 +123,7 @@
       return;
     }
     document.getElementById("update-title").textContent = "Mise à jour " + current.version;
-    document.getElementById("update-copy").textContent = current.kind === "android"
-      ? "Le téléchargement s'ouvre dans le navigateur."
-      : "L'installateur se lance, puis l'application redémarre.";
+    document.getElementById("update-copy").textContent = "Le téléchargement s'ouvre dans le navigateur.";
     const apply = document.getElementById("update-apply");
     apply.disabled = busy;
     apply.textContent = busy ? "Installation…" : "Mettre à jour";
@@ -145,7 +132,7 @@
 
   async function look() {
     try {
-      const found = isAndroid() ? await checkAndroid() : await checkDesktop();
+      const found = await checkAndroid();
       current = found;
       paint();
     } catch (error) {
@@ -158,12 +145,7 @@
     busy = true;
     paint();
     try {
-      if (current.kind === "android") {
-        await invoke("plugin:opener|open_url", { url: current.downloadUrl });
-      } else {
-        await invoke("plugin:updater|download_and_install", { rid: current.rid, onEvent: channel() });
-        await invoke("plugin:process|restart");
-      }
+      await invoke("plugin:opener|open_url", { url: current.downloadUrl });
     } catch (error) {
       console.warn("Mise à jour impossible :", error);
       const copy = document.getElementById("update-copy");
@@ -190,7 +172,7 @@
     });
   }
 
-  if (!internals()) return;
+  if (!internals() || !isAndroid()) return;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 })();

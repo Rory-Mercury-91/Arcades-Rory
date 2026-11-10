@@ -21,8 +21,6 @@
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": true,
-    "targets": ["nsis"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -30,14 +28,5 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
-  },
-  "plugins": {
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/Rory-Mercury-91/Arcades-Rory/releases/latest/download/latest.json"
-      ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBMUI0RDU2NUNFMTE5OTMKUldTVEdlRmNWazBiT2s2R3laYWFhUWRreG5DdmV1emNiY2xZRnhodkdIUTNlK0w2QU43bXZ0c3UK"
-    }
   }
 }
