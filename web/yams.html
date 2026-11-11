@@ -350,16 +350,29 @@
       font-variant-numeric: tabular-nums;
     }
 
+    button.icon-btn.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .evo-player + .evo-player {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
     .evo-track {
       display: flex;
       gap: 8px;
       align-items: flex-end;
       height: 108px;
       margin-top: 12px;
+      overflow-x: auto;
     }
 
     .evo-col {
-      flex: 1;
+      flex: 1 0 32px;
       min-width: 0;
       height: 100%;
       display: flex;
@@ -468,6 +481,21 @@
       color: var(--muted);
       font-size: 14.5px;
       line-height: 1.45;
+    }
+
+    .pull-hint {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      z-index: 20;
+      margin: 0;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      transform: translateX(-50%);
     }
 
     .owner {
@@ -785,7 +813,7 @@
       flex: none;
     }
 
-    .brand-common .link-mark {
+    .brand-row > .link-mark {
       width: 40px;
       height: 40px;
       align-items: center;
@@ -795,10 +823,40 @@
     .game-tools {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       gap: 8px;
       margin-top: 10px;
     }
+
+    .tool-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .table-code {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      text-align: left;
+    }
+
+    #add-manche {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    #add-manche:disabled { opacity: 0.35; }
+
+    #podium-manche[hidden] { display: none !important; }
 
     .reset {
       display: block;
@@ -903,6 +961,23 @@
 
     .dialog-card h2 { margin: 0 0 6px; font-size: 22px; }
     .dialog-card p { margin: 0 0 12px; color: var(--muted); }
+
+    .rules {
+      max-height: min(58vh, 460px);
+      margin: 0 0 4px;
+      padding: 0;
+      overflow: auto;
+      list-style: none;
+    }
+
+    .rules li {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .rules strong { color: var(--ink); }
 
     .dialog-card .btn {
       display: block;
@@ -1015,7 +1090,7 @@
 
     .play-mode button,
     .room-actions button,
-    #room-leave, #room-leave-lobby {
+    #room-leave-lobby {
       width: 100%;
       min-height: 44px;
       border-radius: 12px;
@@ -1092,7 +1167,7 @@
       margin-top: 10px;
     }
 
-    #room-leave, #room-leave-lobby { margin-top: 10px; }
+    #room-leave-lobby { margin-top: 10px; }
 
     #room-setup input {
       width: 100%;
@@ -1260,15 +1335,38 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .seat-row #room-leave {
-      width: auto;
-      flex: none;
-      margin-top: 0;
-      min-height: 36px;
-      padding: 6px 12px;
-      font-size: 14px;
+    #room-note[hidden], #pull-hint[hidden] { display: none !important; }
+
+    @media (min-width: 600px) {
+      body { max-width: 1040px; }
+
+      .dice-row,
+      .dice-actions {
+        max-width: 460px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .gate, .lobby {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .dialog-card { width: min(560px, 100%); }
     }
-    #room-note[hidden] { display: none !important; }
+
+    @media (min-width: 700px) {
+      .panel.is-active {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 22px;
+        align-items: start;
+      }
+
+      .panel .identity,
+      .panel .row-score { grid-column: 1 / -1; }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       * { scroll-behavior: auto !important; }
@@ -1278,6 +1376,17 @@
 <body>
   <header class="topbar">
     <div class="brand-row">
+      <span class="link-mark" id="link-mark" title="Sur ce téléphone" aria-label="Sur ce téléphone">
+        <svg class="link-off" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
+          <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 5l14 14"/>
+        </svg>
+        <svg class="link-on" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
+          <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
+        </svg>
+      </span>
       <h1>Yams</h1>
       <div class="brand-common">
         <a class="icon-btn" href="index.html" aria-label="Tous les jeux">
@@ -1288,17 +1397,13 @@
             <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
           </svg>
         </a>
-        <span class="link-mark" id="link-mark" title="Sur ce téléphone" aria-label="Sur ce téléphone">
-          <svg class="link-off" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
-            <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
-            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 5l14 14"/>
+        <button type="button" class="icon-btn" id="page-evolution" aria-label="Évolution" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="13" width="4.5" height="8" rx="1.2" fill="currentColor"/>
+            <rect x="9.75" y="8" width="4.5" height="13" rx="1.2" fill="currentColor"/>
+            <rect x="16.5" y="3" width="4.5" height="18" rx="1.2" fill="currentColor"/>
           </svg>
-          <svg class="link-on" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/>
-            <circle cx="12" cy="19" r="1.15" fill="currentColor"/>
-          </svg>
-        </span>
+        </button>
         <button type="button" class="icon-btn" id="page-back" aria-label="Retour">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 14 4 9l5-5"/>
@@ -1308,6 +1413,8 @@
       </div>
     </div>
     <div class="game-tools" hidden>
+        <button type="button" class="table-code" id="table-code" hidden aria-label="Copier l'invitation"></button>
+        <div class="tool-actions">
         <button type="button" class="reset reset-top icon-btn" id="reset-top" aria-label="Remettre à zéro">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 0 0-9-9 9.7 9.7 0 0 0-6.7 2.7L3 8"/>
@@ -1316,31 +1423,25 @@
             <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 21v-5h-5"/>
           </svg>
         </button>
-        <div class="modes" role="tablist" aria-label="Façon de marquer">
-          <button type="button" class="icon-btn" id="mode-players" role="tab" aria-selected="true" aria-label="Jeu">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
-              <circle cx="8.2" cy="8.2" r="1.25" fill="currentColor"/>
-              <circle cx="15.8" cy="8.2" r="1.25" fill="currentColor"/>
-              <circle cx="8.2" cy="12" r="1.25" fill="currentColor"/>
-              <circle cx="15.8" cy="12" r="1.25" fill="currentColor"/>
-              <circle cx="8.2" cy="15.8" r="1.25" fill="currentColor"/>
-              <circle cx="15.8" cy="15.8" r="1.25" fill="currentColor"/>
-            </svg>
-          </button>
-          <button type="button" class="icon-btn" id="mode-evolution" role="tab" aria-selected="false" aria-label="Évolution">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="13" width="4.5" height="8" rx="1.2" fill="currentColor"/>
-              <rect x="9.75" y="8" width="4.5" height="13" rx="1.2" fill="currentColor"/>
-              <rect x="16.5" y="3" width="4.5" height="18" rx="1.2" fill="currentColor"/>
-            </svg>
-          </button>
-        </div>
+        <button type="button" class="icon-btn" id="add-manche" aria-label="Ajouter une manche">+1</button>
+        <button type="button" class="icon-btn" id="rules-open" aria-label="Règles">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M9.4 9.3a2.7 2.7 0 1 1 3.4 2.6c-.7.3-1.2.8-1.2 1.6V14.2"/>
+            <circle cx="11.6" cy="17" r="0.9" fill="currentColor"/>
+          </svg>
+        </button>
         <button type="button" class="reset reset-top icon-btn" id="settings-open" aria-label="Réglages">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.58-.22 1.12-.54 1.63-.94l2.39.96c.24.1.51 0 .64-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
           </svg>
         </button>
+        <button type="button" class="icon-btn" id="room-leave" hidden aria-label="Quitter la table">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/>
+          </svg>
+        </button>
+        </div>
     </div>
     <button type="button" id="setup-toggle" class="setup-toggle" hidden>Réglages</button>
     <div class="meters" id="meters">
@@ -1360,6 +1461,7 @@
   </header>
 
   <p class="intro" id="intro"></p>
+  <p class="pull-hint" id="pull-hint" hidden>Glisser pour recharger</p>
 
   <section class="gate" id="gate" hidden>
     <div id="gate-create-form">
@@ -1421,7 +1523,6 @@
   <section class="tray" id="tray">
     <div class="seat-row">
       <p class="seat-badge" id="seat-badge"></p>
-      <button type="button" id="room-leave" hidden>Quitter la table</button>
     </div>
     <div class="play-mode" role="group" aria-label="Façon de lancer" hidden>
       <button type="button" id="play-virtual">Dés du téléphone</button>
@@ -1467,6 +1568,25 @@
     </div>
   </div>
 
+  <div class="dialog is-center" id="rules-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <h2 id="rules-title">Règles</h2>
+      <p>Cinq dés, jusqu'à trois lancers. On garde les dés utiles, puis on remplit une seule case. Le plus haut total gagne.</p>
+      <ul class="rules">
+        <li><strong>As à Six.</strong> La somme des dés de cette face. Bonus de 35 si ce total atteint 63.</li>
+        <li><strong>Brelan.</strong> Au moins trois dés identiques : la somme des cinq dés.</li>
+        <li><strong>Carré.</strong> Au moins quatre dés identiques : la somme des cinq dés.</li>
+        <li><strong>Full.</strong> Trois dés d'une face et deux d'une autre : 25 points.</li>
+        <li><strong>Petite suite.</strong> Quatre dés qui se suivent : 30 points.</li>
+        <li><strong>Grande suite.</strong> Cinq dés qui se suivent : 40 points.</li>
+        <li><strong>Yams.</strong> Cinq dés identiques : 50 points.</li>
+        <li><strong>Chance.</strong> La somme des cinq dés.</li>
+        <li><strong>Barrer.</strong> Une case impossible compte zéro. Chaque case ne se remplit qu'une fois. La feuille est finie quand elles le sont toutes.</li>
+      </ul>
+      <button type="button" class="btn primary" id="rules-close">Fermer</button>
+    </div>
+  </div>
+
   <div class="dialog is-center" id="tutorial" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
       <p class="dice-status" id="tutorial-count"></p>
@@ -1490,7 +1610,8 @@
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="podium-title">
       <h2 id="podium-title">Fin de partie</h2>
       <div id="podium-body"></div>
-      <button type="button" class="btn primary" id="podium-close">Fermer</button>
+      <button type="button" class="btn primary" id="podium-manche">Nouvelle partie</button>
+      <button type="button" class="btn text" id="podium-close">Fermer</button>
     </div>
   </div>
 
@@ -1511,6 +1632,7 @@
     const LEGACY_KEY = "yams-chance-5-v1";
     const BONUS_THRESHOLD = 63;
     const BONUS_POINTS = 35;
+    const ROLL_SPIN = 3000;
     const PLAYER_MAX = 5;
     const MANCHE_MAX = 5;
 
@@ -1564,6 +1686,7 @@
       return {
         view: "players",
         screen: "create",
+        historyId: "",
         timed: false,
         hints: true,
         playerCount: 1,
@@ -1604,6 +1727,38 @@
     function playerName(index) {
       const name = state.players[index].name.trim();
       return name || "Joueur " + (index + 1);
+    }
+
+    function playOrder() {
+      const count = state.playerCount;
+      const seats = [];
+      const seen = {};
+      (room.order || []).forEach((seat) => {
+        const index = Number(seat);
+        if (index >= 0 && index < count && !seen[index]) {
+          seen[index] = true;
+          seats.push(index);
+        }
+      });
+      for (let index = 0; index < count; index += 1) {
+        if (!seen[index]) seats.push(index);
+      }
+      return seats;
+    }
+
+    function openingFresh(previous, next) {
+      return next.some((face, index) => face > 0 && !((previous[index] || 0) > 0));
+    }
+
+    function openingTied() {
+      let seenZero = false;
+      let faceAfterZero = false;
+      playOrder().forEach((seat) => {
+        if ((room.opening[seat] || 0) > 0) {
+          if (seenZero) faceAfterZero = true;
+        } else seenZero = true;
+      });
+      return seenZero && faceAfterZero;
     }
 
     function hasEntry(scores) {
@@ -1696,6 +1851,7 @@
           const data = JSON.parse(raw);
           base.view = data.view === "evolution" ? "evolution" : "players";
           base.screen = data.screen === "play" ? "play" : "create";
+          base.historyId = typeof data.historyId === "string" ? data.historyId.slice(0, 48) : "";
           base.timed = false;
           base.hints = data.hints !== false;
           base.playerCount = clamp(data.playerCount, 1, PLAYER_MAX, PLAYER_MAX);
@@ -1753,17 +1909,18 @@
       const lower = LOWER.reduce((sum, cat) => sum + readScore(player.scores[cat.id]), 0);
       const bonus = upper >= BONUS_THRESHOLD ? BONUS_POINTS : 0;
       const anyUpper = UPPER.some((cat) => player.scores[cat.id] !== "");
-      let hint = "35 pts si le total ≥ 63";
+      let hint = BONUS_POINTS + " pts si le total ≥ " + BONUS_THRESHOLD;
       if (anyUpper) {
         if (upper >= BONUS_THRESHOLD) {
-          hint = "Bonus acquis";
+          hint = BONUS_POINTS + " pts acquis";
         } else {
           const remaining = UPPER.reduce((sum, cat) => {
             return sum + (player.scores[cat.id] === "" ? cat.max : 0);
           }, 0);
+          const missing = BONUS_THRESHOLD - upper;
           hint = upper + remaining < BONUS_THRESHOLD
-            ? "Bonus hors de portée"
-            : "Encore " + (BONUS_THRESHOLD - upper) + " pts";
+            ? BONUS_POINTS + " pts hors de portée"
+            : BONUS_POINTS + " pts si encore ≥ " + missing;
         }
       }
       return {
@@ -1842,91 +1999,235 @@
       </div>`;
     }
 
-    function lastResultText(playerIndex) {
-      const player = state.players[playerIndex];
-      let last = -1;
-      for (let manche = state.mancheCount - 1; manche >= 0; manche -= 1) {
-        if (hasEntry(player.manches[manche])) {
-          last = manche;
-          break;
-        }
+    const HISTORY_KEY = "yams-history";
+    const HISTORY_LIMIT = 80;
+    const HISTORY_BARS = 16;
+
+    function sheetComplete(scores) {
+      return ALL.every((cat) => scores[cat.id] !== "");
+    }
+
+    function nameKey(name) {
+      return String(name || "").trim().toLocaleLowerCase("fr");
+    }
+
+    function groupKey(names) {
+      return names.map(nameKey).filter(Boolean).sort().join("|");
+    }
+
+    function countLabel(count, singular, plural) {
+      return count + " " + (count === 1 ? singular : plural);
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        const data = raw ? JSON.parse(raw) : null;
+        if (data && Array.isArray(data.sessions)) return data;
+      } catch (error) {
+        // Historique illisible : on repart d'une liste vide.
       }
-      if (last < 0) return "Aucun score pour l'instant.";
-      const score = compute({ scores: player.manches[last] }).score;
-      let previous = -1;
-      for (let manche = last - 1; manche >= 0; manche -= 1) {
-        if (hasEntry(player.manches[manche])) {
-          previous = manche;
-          break;
-        }
+      return { sessions: [] };
+    }
+
+    function saveHistory(history) {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      } catch (error) {
+        // Stockage refusé.
       }
-      if (previous < 0) return "Dernière manche jouée : " + (last + 1) + " · " + score + " pts.";
-      const delta = score - compute({ scores: player.manches[previous] }).score;
-      const sign = delta > 0 ? "+" + delta : String(delta);
-      return "Manche " + (last + 1) + " : " + score + " pts (" + sign + " depuis la manche " + (previous + 1) + ").";
+    }
+
+    function mintHistoryId() {
+      state.historyId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function currentNames() {
+      const names = [];
+      for (let index = 0; index < state.playerCount; index += 1) names.push(playerName(index));
+      return names;
+    }
+
+    function rowByName(names, scores) {
+      const map = {};
+      names.forEach((name, index) => {
+        map[nameKey(name)] = scores[index];
+      });
+      return map;
+    }
+
+    // Une manche n'est gardée qu'une fois la feuille de chaque joueur remplie.
+    function rememberCompletedManches() {
+      if (state.screen !== "play") return;
+      const names = currentNames();
+      const done = [];
+      for (let manche = 0; manche < state.mancheCount; manche += 1) {
+        const complete = names.every((_, index) => sheetComplete(state.players[index].manches[manche]));
+        done.push(complete
+          ? names.map((_, index) => compute({ scores: state.players[index].manches[manche] }).score)
+          : null);
+      }
+      if (!done.some((scores) => scores)) return;
+      let minted = false;
+      if (!state.historyId) {
+        mintHistoryId();
+        minted = true;
+      }
+      const history = loadHistory();
+      let session = history.sessions.find((item) => item.id === state.historyId);
+      if (session && groupKey(session.names) !== groupKey(names) && session.manches.some((row) => Array.isArray(row))) {
+        mintHistoryId();
+        minted = true;
+        session = null;
+      }
+      if (!session) {
+        session = { id: state.historyId, at: Date.now(), names: names.slice(), manches: [] };
+        history.sessions.push(session);
+      }
+      session.names = names.slice();
+      session.at = Date.now();
+      let changed = false;
+      done.forEach((scores, index) => {
+        if (!scores) return;
+        const previous = session.manches[index];
+        if (previous && previous.length === scores.length && previous.every((value, seat) => value === scores[seat])) return;
+        session.manches[index] = scores;
+        changed = true;
+      });
+      if (!changed && !minted) return;
+      history.sessions = history.sessions
+        .filter((item) => item.manches.some((row) => Array.isArray(row)))
+        .slice(-HISTORY_LIMIT);
+      saveHistory(history);
+      saveState();
+    }
+
+    function liveManches() {
+      if (state.screen !== "play") return null;
+      const names = currentNames();
+      const manches = [];
+      for (let manche = 0; manche < state.mancheCount; manche += 1) {
+        const scores = names.map((_, index) => {
+          const sheet = state.players[index].manches[manche];
+          return hasEntry(sheet) ? compute({ scores: sheet }).score : null;
+        });
+        manches.push(scores.some((score) => score !== null) ? scores : null);
+      }
+      return { id: state.historyId || "", names, manches };
+    }
+
+    function historyGroups() {
+      const live = liveManches();
+      const groups = [];
+      const seenLive = live && live.id && loadHistory().sessions.some((session) => session.id === live.id);
+      loadHistory().sessions.forEach((session) => {
+        const names = live && live.id === session.id ? live.names : session.names;
+        const key = groupKey(names || []);
+        if (!key) return;
+        let group = groups.find((item) => item.key === key);
+        if (!group) {
+          group = { key, names: names.slice(), seen: 0, series: [] };
+          groups.push(group);
+        }
+        const at = session.at || 0;
+        if (at >= group.seen) {
+          group.names = names.slice();
+          group.seen = at;
+        }
+        let rows = (session.manches || []).filter((row) => Array.isArray(row));
+        if (live && live.id === session.id) {
+          const count = Math.max(session.manches.length, live.manches.length);
+          rows = [];
+          for (let index = 0; index < count; index += 1) {
+            const fresh = live.manches[index];
+            if (fresh) rows.push(fresh);
+            else if (Array.isArray(session.manches[index])) rows.push(session.manches[index]);
+          }
+        }
+        if (rows.length) group.series.push({ at, rows: rows.map((scores) => rowByName(names, scores)) });
+      });
+      if (live && !seenLive && live.manches.some((row) => row)) {
+        const key = groupKey(live.names);
+        let group = groups.find((item) => item.key === key);
+        if (!group) {
+          group = { key, names: live.names.slice(), seen: Date.now(), series: [] };
+          groups.push(group);
+        }
+        const rows = live.manches.filter((row) => row);
+        if (rows.length) group.series.push({ at: Date.now(), rows: rows.map((scores) => rowByName(live.names, scores)) });
+      }
+      groups.sort((a, b) => b.seen - a.seen);
+      return groups;
     }
 
     function evolutionMarkup() {
-      const people = [];
-      for (let index = 0; index < state.playerCount; index += 1) {
-        people.push({ index, name: playerName(index), total: playerTotal(index) });
+      const groups = historyGroups();
+      if (!groups.length) {
+        return `<p class="evo-note">Aucune manche terminée pour l'instant. Une feuille remplie reste ici, sur cet appareil.</p>`;
       }
-      const entered = [];
-      people.forEach((person) => {
-        for (let manche = 0; manche < state.mancheCount; manche += 1) {
-          const scores = state.players[person.index].manches[manche];
-          if (hasEntry(scores)) entered.push(compute({ scores }).score);
+      return groups.map((group) => {
+        const lines = [];
+        group.series.slice().sort((a, b) => a.at - b.at).forEach((serie) => {
+          serie.rows.forEach((row) => lines.push(row));
+        });
+        const shown = lines.slice(-HISTORY_BARS);
+        const hidden = lines.length - shown.length;
+        const people = group.names.map((name) => {
+          const key = nameKey(name);
+          const total = lines.reduce((sum, row) => sum + (typeof row[key] === "number" ? row[key] : 0), 0);
+          return { name, key, total };
+        }).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "fr"));
+        const wins = {};
+        people.forEach((person) => { wins[person.key] = 0; });
+        if (people.length > 1) {
+          group.series.forEach((serie) => {
+            const totals = people.map((person) => serie.rows.reduce((sum, row) => sum + (typeof row[person.key] === "number" ? row[person.key] : 0), 0));
+            const best = Math.max(...totals);
+            totals.forEach((total, index) => {
+              if (total === best) wins[people[index].key] += 1;
+            });
+          });
         }
-      });
-      const peak = Math.max(1, ...entered);
-      const ranked = people.slice().sort((a, b) => b.total - a.total || a.index - b.index);
-      const showPodium = state.playerCount > 1 && entered.length > 0;
-      const places = ranked.slice(0, 3);
-      const podiumOrder = places.length === 2 ? [places[1], places[0]] : [places[1], places[0], places[2]].filter(Boolean);
-      const podium = showPodium
-        ? `<div class="podium ${places.length === 2 ? "is-duo" : "is-trio"}" aria-label="Podium">${podiumOrder.map((person) => {
-          const place = ranked.indexOf(person) + 1;
-          return `<div class="place place-${place}"><span class="rank">${place}</span><span class="who">${escapeHtml(person.name)}</span><span class="pts">${person.total}</span></div>`;
-        }).join("")}</div>`
-        : "";
-      const rankLine = entered.length
-        ? ""
-        : `<p class="evo-note">Dès la deuxième manche, l'écart avec la précédente s'affiche sous chaque barre.</p>`;
-      const cards = people.map((person) => {
-        const cols = [];
-        for (let manche = 0; manche < state.mancheCount; manche += 1) {
-          const scores = state.players[person.index].manches[manche];
-          const played = hasEntry(scores);
-          const score = played ? compute({ scores }).score : null;
-          let delta = "";
-          if (played) {
-            let prev = null;
-            for (let earlier = manche - 1; earlier >= 0; earlier -= 1) {
-              if (hasEntry(state.players[person.index].manches[earlier])) {
-                prev = compute({ scores: state.players[person.index].manches[earlier] }).score;
-                break;
-              }
-            }
-            if (prev !== null) {
-              const diff = score - prev;
+        const peak = Math.max(1, ...shown.flatMap((row) => people.map((person) => typeof row[person.key] === "number" ? row[person.key] : 0)));
+        const stats = [countLabel(group.series.length, "partie", "parties"), countLabel(lines.length, "manche", "manches")];
+        if (people.length > 1) {
+          people.forEach((person) => {
+            stats.push(person.name + " " + countLabel(wins[person.key], "victoire", "victoires"));
+          });
+        }
+        const tracks = people.map((person) => {
+          const cols = shown.map((row, index) => {
+            const score = row[person.key];
+            const played = typeof score === "number";
+            let delta = "";
+            if (played && index > 0 && typeof shown[index - 1][person.key] === "number") {
+              const diff = score - shown[index - 1][person.key];
               const kind = diff > 0 ? "up" : diff < 0 ? "down" : "";
-              const text = diff > 0 ? "+" + diff : String(diff);
-              delta = `<span class="delta ${kind}">${text}</span>`;
+              delta = `<span class="delta ${kind}">${diff > 0 ? "+" + diff : String(diff)}</span>`;
             }
-          }
-          const height = played ? Math.max(6, Math.round((score / peak) * 72)) : 0;
-          const bar = played
-            ? `<span class="evo-bar" style="height:${height}px"></span>`
-            : `<span class="evo-bar is-empty"></span>`;
-          cols.push(`<div class="evo-col">${bar}<span class="pts">${played ? score : "–"}</span>${delta}<span class="seat">M${manche + 1}</span></div>`);
-        }
-        return `<article class="evo-card">
-          <div class="evo-head"><strong>${escapeHtml(person.name)}</strong><span class="evo-total">${person.total}</span></div>
-          <div class="evo-track">${cols.join("")}</div>
-          <p class="evo-note">${escapeHtml(lastResultText(person.index))}</p>
-        </article>`;
+            const height = played ? Math.max(6, Math.round((score / peak) * 72)) : 0;
+            const bar = played
+              ? `<span class="evo-bar" style="height:${height}px"></span>`
+              : `<span class="evo-bar is-empty"></span>`;
+            const label = hidden + index + 1;
+            return `<div class="evo-col">${bar}<span class="pts">${played ? score : "–"}</span>${delta}<span class="seat">M${label}</span></div>`;
+          }).join("");
+          return `<div class="evo-player">
+            <div class="evo-head"><strong>${escapeHtml(person.name)}</strong><span class="evo-total">${person.total}</span></div>
+            <div class="evo-track">${cols}</div>
+          </div>`;
+        }).join("");
+        const title = people.length > 1
+          ? `<div class="evo-head"><strong>${escapeHtml(group.names.join(" · "))}</strong></div>`
+          : "";
+        const older = hidden > 0 ? `<p class="evo-note">${countLabel(shown.length, "dernière manche affichée", "dernières manches affichées")}.</p>` : "";
+        return `<section class="evo-card">
+          ${title}
+          <p class="evo-note">${escapeHtml(stats.join(" · "))}</p>
+          ${tracks}
+          ${older}
+        </section>`;
       }).join("");
-      return podium + rankLine + cards;
     }
 
     function renderContext() {
@@ -1951,6 +2252,10 @@
 
     const FACE_VALUE = { as: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6 };
     const dice = { faces: [0, 0, 0, 0, 0], held: [false, false, false, false, false], rolls: 0, busy: false };
+    let tumbleTimer = 0;
+    let rollEpoch = 0;
+    let diceSeen = false;
+    let openingMine = false;
     const TUTORIAL = [
       ["Yams", "Une feuille de score. Tu crées une partie sur ce téléphone, ou tu rejoins une table avec un code."],
       ["Les dés", "Jusqu'à trois lancers. Entre deux lancers, touche un dé pour le garder."],
@@ -2045,6 +2350,7 @@
 
     function yourTurn() {
       if (!room.token) return true;
+      if (room.phase === "opening") return room.you === room.turn;
       return room.phase === "play" && room.you === room.turn;
     }
 
@@ -2112,6 +2418,48 @@
       });
     }
 
+    async function concealRoll(faces, held, rolls) {
+      const epoch = ++rollEpoch;
+      dice.busy = true;
+      const status = document.getElementById("dice-status");
+      if (status) status.textContent = playerName(room.turn) + " lance les dés…";
+      const tumble = window.setInterval(paintTumble, 90);
+      tumbleTimer = tumble;
+      paintTumble();
+      await sleep(ROLL_SPIN);
+      window.clearInterval(tumble);
+      if (tumbleTimer === tumble) tumbleTimer = 0;
+      if (epoch !== rollEpoch) return;
+      dice.faces = faces.slice();
+      dice.held = held.slice();
+      dice.rolls = rolls;
+      dice.busy = false;
+      render();
+      refreshRoom();
+    }
+
+    async function concealOpening(snapshot) {
+      const epoch = ++rollEpoch;
+      dice.busy = true;
+      const status = document.getElementById("dice-status");
+      if (status) status.textContent = playerName(room.turn) + " lance le dé…";
+      const tumble = window.setInterval(paintTumble, 90);
+      tumbleTimer = tumble;
+      paintTumble();
+      await sleep(ROLL_SPIN);
+      window.clearInterval(tumble);
+      if (tumbleTimer === tumble) tumbleTimer = 0;
+      if (epoch !== rollEpoch) return;
+      room.opening = snapshot.opening;
+      room.turn = snapshot.turn;
+      room.phase = snapshot.phase;
+      room.order = snapshot.order;
+      if (followSheet) state.activePlayer = room.turn;
+      dice.busy = false;
+      render();
+      refreshRoom();
+    }
+
     function tableBase() {
       return room.base.replace(/\/$/, "");
     }
@@ -2133,6 +2481,8 @@
       room.error = "";
       rememberRoom();
       resetDice();
+      diceSeen = false;
+      openingMine = false;
       state.screen = "create";
     }
 
@@ -2169,6 +2519,9 @@
         args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
       } else if (clean.endsWith("/start")) {
         name = "yams_start";
+        args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
+      } else if (clean.endsWith("/opening")) {
+        name = "yams_opening_roll";
         args = { p_code: decodeURIComponent(parts[3] || ""), p_token: body.token || "" };
       } else if (clean.endsWith("/leave")) {
         name = "yams_leave";
@@ -2227,6 +2580,10 @@
       const nameInput = document.getElementById("settings-name");
       const typingName = Boolean(nameInput && document.activeElement === nameInput && remote.you >= 0);
       const keptName = typingName || pendingName !== null ? (pendingName !== null ? pendingName : state.players[remote.you].name) : null;
+      const previousOpening = room.opening.slice();
+      const previousTurn = room.turn;
+      const previousPhase = room.phase;
+      const previousOrder = room.order.slice();
       room.code = remote.code;
       room.token = data.token || room.token;
       room.you = remote.you;
@@ -2262,13 +2619,36 @@
         state.players[remote.you].name = keptName;
       }
       room.snapshot = remote.you >= 0 ? Object.assign({}, state.players[remote.you].manches[state.activeManche]) : {};
-      if (playMode !== "physical" && Array.isArray(remote.dice) && Array.isArray(remote.held)) {
+      const concealOpen = diceSeen && !openingMine && openingFresh(previousOpening, room.opening);
+      if (concealOpen) {
+        const snapshot = {
+          opening: room.opening.slice(),
+          turn: room.turn,
+          phase: room.phase,
+          order: room.order.slice()
+        };
+        room.opening = previousOpening;
+        room.turn = previousTurn;
+        room.phase = previousPhase;
+        room.order = previousOrder;
+        state.activePlayer = followSheet ? room.turn : Math.max(0, remote.you);
+        diceSeen = true;
+        saveState();
+        render();
+        concealOpening(snapshot);
+        return;
+      }
+      const showDice = playMode !== "physical" && Array.isArray(remote.dice) && Array.isArray(remote.held);
+      const conceal = showDice && diceSeen && room.phase === "play" && !yourTurn() && remote.rolls > dice.rolls;
+      if (showDice && !conceal) {
         dice.faces = remote.dice.slice();
         dice.held = remote.held.slice();
         dice.rolls = remote.rolls;
       }
+      diceSeen = true;
       saveState();
       render();
+      if (conceal) concealRoll(remote.dice.slice(), remote.held.slice(), remote.rolls);
     }
 
     async function refreshRoom() {
@@ -2294,6 +2674,24 @@
       roomTimer = window.setInterval(refreshRoom, 1500);
     }
 
+    function resumeTable() {
+      if (!room.token || !room.code) return;
+      const stuck = dice.busy;
+      rollEpoch += 1;
+      if (tumbleTimer) {
+        window.clearInterval(tumbleTimer);
+        tumbleTimer = 0;
+      }
+      dice.busy = false;
+      if (roomTimer) {
+        window.clearInterval(roomTimer);
+        roomTimer = 0;
+      }
+      ensureRoomPoll();
+      refreshRoom();
+      if (stuck) render();
+    }
+
     function renderTray() {
       if (dice.busy) return;
       const tray = document.getElementById("tray");
@@ -2315,6 +2713,29 @@
       document.getElementById("dice-row").hidden = physical;
       document.getElementById("dice-roll").hidden = physical;
       document.getElementById("end-turn").hidden = !physical;
+      if (online && room.phase === "opening") {
+        document.getElementById("dice-row").hidden = false;
+        document.getElementById("dice-roll").hidden = false;
+        document.getElementById("end-turn").hidden = true;
+        document.getElementById("dice-hints").innerHTML = "";
+        document.getElementById("dice-row").innerHTML = `<button type="button" class="cube" disabled aria-label="Dé de départ"><span class="die-empty">?</span></button>`;
+        const roll = document.getElementById("dice-roll");
+        roll.disabled = !mine;
+        roll.textContent = "Lancer";
+        const known = [];
+        for (let index = 0; index < state.playerCount; index += 1) {
+          if (room.opening[index] > 0) known.push(playerName(index) + " " + room.opening[index]);
+        }
+        const tied = openingTied();
+        let text = mine
+          ? (tied ? "Égalité. Lance ton dé." : "Lance ton dé.")
+          : (tied ? "Égalité. Au tour de " + playerName(room.turn) + " de relancer." : "Au tour de " + playerName(room.turn) + " de lancer le dé.");
+        if (known.length) text = "Départ : " + known.join(", ") + ". " + text;
+        document.getElementById("dice-status").textContent = room.error || text;
+        document.getElementById("room-leave").hidden = false;
+        document.getElementById("room-note").hidden = true;
+        return;
+      }
       document.getElementById("dice-row").innerHTML = dice.faces.map((face, index) => {
         const body = face ? dieMarkup(face) : `<span class="die-empty">?</span>`;
         const disabled = !mine || dice.rolls === 0 || dice.rolls >= 3;
@@ -2322,10 +2743,13 @@
       }).join("");
       const status = document.getElementById("dice-status");
       if (room.error) status.textContent = room.error;
-      else if (online && room.phase === "done") status.textContent = "Table " + room.code + " · partie terminée";
-      else if (online && !mine) status.textContent = "Table " + room.code + " · au tour de " + playerName(room.turn);
-      else if (physical) status.textContent = online ? "Table " + room.code + " · marque ta case, puis termine le tour" : "Marque la case, puis termine le tour.";
-      else if (dice.rolls === 0) status.textContent = online ? "Table " + room.code + " · à toi de lancer" : "Lance les dés, puis touche une figure.";
+      else if (online && room.phase === "done") status.textContent = "Partie terminée.";
+      else if (online && !mine) {
+        status.textContent = "Au tour de " + playerName(room.turn) + ".";
+        if (!physical && dice.rolls > 0) status.textContent += " Lancer " + dice.rolls + " / 3.";
+      }
+      else if (physical) status.textContent = "Marque la case, puis termine le tour.";
+      else if (dice.rolls === 0) status.textContent = online ? "À toi de lancer." : "Lance les dés, puis touche une figure.";
       else status.textContent = "Lancer " + dice.rolls + " / 3" + (dice.rolls < 3 ? " · touche un dé pour le garder" : "");
       if (online && room.opening.some((face) => face > 0) && state.players.slice(0, state.playerCount).every((player) => !hasEntry(player.manches[state.activeManche]))) {
         const draw = [];
@@ -2384,16 +2808,67 @@
       return new Promise((resolve) => window.setTimeout(resolve, ms));
     }
 
+    async function onOpeningRoll() {
+      if (!room.token || room.phase !== "opening" || room.you !== room.turn || dice.busy) return;
+      room.error = "";
+      const epoch = ++rollEpoch;
+      openingMine = true;
+      dice.busy = true;
+      const status = document.getElementById("dice-status");
+      if (status) status.textContent = "Le dé tourne…";
+      document.getElementById("dice-roll").disabled = true;
+      const started = Date.now();
+      const tumble = window.setInterval(paintTumble, 90);
+      tumbleTimer = tumble;
+      paintTumble();
+      let data = null;
+      let failed = "";
+      try {
+        data = await roomRequest("/api/rooms/" + encodeURIComponent(room.code) + "/opening", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: room.token })
+        });
+        const wait = ROLL_SPIN - (Date.now() - started);
+        if (wait > 0) await sleep(wait);
+      } catch (error) {
+        failed = error.message;
+      } finally {
+        window.clearInterval(tumble);
+        if (tumbleTimer === tumble) tumbleTimer = 0;
+        if (epoch === rollEpoch) dice.busy = false;
+      }
+      if (epoch !== rollEpoch) {
+        openingMine = false;
+        return;
+      }
+      if (failed) {
+        openingMine = false;
+        room.error = failed;
+        render();
+        return;
+      }
+      room.revision = 0;
+      applyRemote(data);
+      openingMine = false;
+    }
+
     async function onRoll() {
+      if (room.phase === "opening") {
+        await onOpeningRoll();
+        return;
+      }
       if (!yourTurn() || dice.rolls >= 3 || dice.busy) return;
       if (room.token && room.phase !== "play") return;
       room.error = "";
+      const epoch = ++rollEpoch;
       dice.busy = true;
       const status = document.getElementById("dice-status");
       if (status) status.textContent = "Les dés tournent…";
       document.getElementById("dice-roll").disabled = true;
       const started = Date.now();
       const tumble = window.setInterval(paintTumble, 90);
+      tumbleTimer = tumble;
       paintTumble();
       let data = null;
       let failed = "";
@@ -2406,14 +2881,16 @@
             body: JSON.stringify({ token: room.token, hold: dice.held })
           });
         }
-        const wait = 3000 - (Date.now() - started);
+        const wait = ROLL_SPIN - (Date.now() - started);
         if (wait > 0) await sleep(wait);
       } catch (error) {
         failed = error.message;
       } finally {
         window.clearInterval(tumble);
-        dice.busy = false;
+        if (tumbleTimer === tumble) tumbleTimer = 0;
+        if (epoch === rollEpoch) dice.busy = false;
       }
+      if (epoch !== rollEpoch) return;
       if (failed) {
         room.error = failed;
         render();
@@ -2603,7 +3080,7 @@
       const place = room.token ? "En ligne · " + room.code : "Sur ce téléphone";
       const rows = [
         ["Joueurs", String(room.token ? (room.playerCap || state.playerCount) : state.playerCount), "Nombre maximum de joueurs. La porte se ferme quand il est atteint, ou dès le lancement."],
-        ["Manches", String(state.mancheCount), "Grilles prévues. Nouvelle partie, en bas, ajoute une manche et garde les précédentes."],
+        ["Manches", String(state.mancheCount), "Grilles prévues. +1, à côté de la remise à zéro, ajoute une manche et garde les précédentes."],
         ["Dés", playMode === "physical" ? "Physiques" : "Du téléphone", "Dés du téléphone : trois lancers communs. Dés physiques : chacun lance les siens."],
         ["Aide", state.hints ? "Oui" : "Non", "Propose une combinaison, ou de barrer une case quand rien n'est possible."],
         ["Table", place, "Sur ce téléphone : sans connexion. En ligne : les autres rejoignent avec le code."]
@@ -2645,6 +3122,7 @@
         try { localStorage.setItem("yams-dice-play", playMode); } catch (error) { /* stockage refusé */ }
       }
       clearSheets();
+      state.historyId = "";
       if (!draft.online) {
         state.screen = "play";
         saveState();
@@ -2675,8 +3153,12 @@
       }
     }
 
+    function inviteText() {
+      return "Je vous invite sur ma partie de Yams en ligne. Pour me rejoindre, utilise le code : " + room.code + ".";
+    }
+
     async function copyInvite() {
-      const text = "Je vous invite sur ma partie de Yams en ligne. Pour me rejoindre, utilise le code : " + room.code + ".";
+      const text = inviteText();
       try {
         if (navigator.share) {
           await navigator.share({ text });
@@ -2694,6 +3176,37 @@
       renderLobby();
     }
 
+    async function copyTableCode() {
+      const button = document.getElementById("table-code");
+      const text = inviteText();
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch (error) {
+        try {
+          if (navigator.share) {
+            await navigator.share({ text });
+            copied = true;
+          }
+        } catch (shareError) {
+          if (shareError && shareError.name === "AbortError") return;
+        }
+      }
+      if (!copied || !button) return;
+      button.dataset.copied = "1";
+      button.textContent = "Copié";
+      window.setTimeout(() => {
+        button.dataset.copied = "";
+        if (room.code) button.textContent = room.code;
+      }, 1400);
+    }
+
+    function closePodium() {
+      document.getElementById("podium-dialog").hidden = true;
+      document.body.style.overflow = "";
+    }
+
     async function addManche() {
       if (state.mancheCount >= MANCHE_MAX) {
         room.error = "Cinq manches maximum.";
@@ -2707,6 +3220,8 @@
         dice.held = [false, false, false, false, false];
         dice.rolls = 0;
         room.error = "";
+        podiumKey = "";
+        closePodium();
         saveState();
         render();
         return;
@@ -2719,6 +3234,8 @@
         });
         room.revision = 0;
         room.error = "";
+        podiumKey = "";
+        closePodium();
         applyRemote(data);
       } catch (error) {
         room.error = error.message;
@@ -2808,6 +3325,12 @@
         body += `<ul class="lobby-list">${ranked.map((person, index) => `<li>${index + 1}. ${escapeHtml(person.name)} · ${person.total} pts</li>`).join("")}</ul>`;
       }
       document.getElementById("podium-body").innerHTML = body;
+      const add = document.getElementById("podium-manche");
+      const close = document.getElementById("podium-close");
+      const full = state.mancheCount >= MANCHE_MAX;
+      add.hidden = full;
+      close.classList.toggle("primary", full);
+      close.classList.toggle("text", !full);
       dialog.hidden = false;
       document.body.style.overflow = "hidden";
     }
@@ -2821,21 +3344,50 @@
       mark.setAttribute("aria-label", label);
     }
 
+    function paintEvolutionButton(on) {
+      const button = document.getElementById("page-evolution");
+      if (!button) return;
+      button.classList.toggle("is-active", on);
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
     function render() {
       const evolution = isEvolutionView();
       const current = book();
       const online = Boolean(room.token);
       paintLink(online);
+      paintEvolutionButton(evolution);
+      rememberCompletedManches();
       const gateOn = showGate();
       const lobbyOn = inLobby();
-      document.getElementById("gate").hidden = !gateOn;
-      document.getElementById("gate-create-form").hidden = !gateOn;
-      if (gateOn) renderDraft();
-      document.getElementById("intro").hidden = gateOn;
+      document.getElementById("gate").hidden = !gateOn || evolution;
+      document.getElementById("gate-create-form").hidden = !gateOn || evolution;
+      if (gateOn && !evolution) renderDraft();
+      document.getElementById("intro").hidden = gateOn && !evolution;
       document.querySelector(".game-tools").hidden = state.screen !== "play";
-      document.querySelector(".modes").hidden = gateOn;
       document.getElementById("reset").hidden = gateOn || lobbyOn;
       document.getElementById("reset-top").hidden = state.screen !== "play";
+      document.getElementById("add-manche").disabled = state.mancheCount >= MANCHE_MAX;
+      if (gateOn && evolution) {
+        document.getElementById("meters").hidden = true;
+        document.getElementById("setup-toggle").hidden = true;
+        document.getElementById("tabs").hidden = true;
+        document.getElementById("tray").hidden = true;
+        document.getElementById("lobby").hidden = true;
+        document.getElementById("panels").hidden = true;
+        document.querySelector(".pager").hidden = true;
+        document.getElementById("tutorial").hidden = true;
+        const context = document.getElementById("context");
+        context.hidden = true;
+        context.innerHTML = "";
+        const intro = document.getElementById("intro");
+        intro.hidden = false;
+        intro.textContent = "Les manches terminées restent sur cet appareil, pour chaque groupe.";
+        document.getElementById("evolution").hidden = false;
+        document.getElementById("evolution").innerHTML = evolutionMarkup();
+        saveState();
+        return;
+      }
       if (gateOn) {
         document.getElementById("meters").hidden = true;
         document.getElementById("setup-toggle").hidden = true;
@@ -2844,6 +3396,7 @@
         document.getElementById("lobby").hidden = true;
         document.getElementById("panels").hidden = true;
         document.getElementById("evolution").hidden = true;
+        document.getElementById("evolution").innerHTML = "";
         document.querySelector(".pager").hidden = true;
         const context = document.getElementById("context");
         context.hidden = true;
@@ -2869,15 +3422,18 @@
       document.getElementById("less-manches").disabled = online || state.mancheCount <= 1;
       document.getElementById("more-manches").disabled = online || state.mancheCount >= MANCHE_MAX;
       document.getElementById("tabs").hidden = evolution || state.playerCount < 2;
-      document.getElementById("mode-players").classList.toggle("is-active", !evolution);
-      document.getElementById("mode-evolution").classList.toggle("is-active", evolution);
-      document.getElementById("mode-players").setAttribute("aria-selected", evolution ? "false" : "true");
-      document.getElementById("mode-evolution").setAttribute("aria-selected", evolution ? "true" : "false");
-      document.getElementById("intro").textContent = evolution
-        ? "Le podium si vous êtes plusieurs, et l'évolution manche après manche."
-        : online
-          ? "Table " + room.code + "."
-          : "";
+      const intro = document.getElementById("intro");
+      intro.textContent = evolution
+        ? "Les manches terminées restent sur cet appareil, pour chaque groupe."
+        : "";
+      intro.hidden = gateOn || intro.textContent === "";
+      const tableCode = document.getElementById("table-code");
+      const showCode = online && Boolean(room.code);
+      tableCode.hidden = !showCode;
+      if (showCode && tableCode.dataset.copied !== "1") {
+        tableCode.textContent = room.code;
+        tableCode.setAttribute("aria-label", "Copier l'invitation, table " + room.code);
+      }
       document.querySelector(".pager").hidden = evolution || (state.playerCount < 2 && state.mancheCount < 2);
       renderContext();
       if (evolution) {
@@ -2895,28 +3451,35 @@
 
       const tabs = [];
       const panels = [];
+      const drawOpen = room.token && room.opening.some((face) => face > 0)
+        && state.players.slice(0, current.count).every((player) => !hasEntry(player.manches[state.activeManche]));
       for (let index = 0; index < current.count; index += 1) {
         const emptyName = sheetAt(index).name.trim() === "";
-        const seat = "#" + (index + 1);
-        tabs.push(`<button type="button" class="tab${emptyName ? " is-empty" : ""}" role="tab" id="tab-${index}" data-tab="${index}" aria-selected="false" aria-controls="panel-${index}">
+        const seat = "#" + (index + 1) + (drawOpen && room.opening[index] > 0 ? " · " + room.opening[index] : "");
+        const tab = `<button type="button" class="tab${emptyName ? " is-empty" : ""}" role="tab" id="tab-${index}" data-tab="${index}" aria-selected="false" aria-controls="panel-${index}">
           <span class="seat">${seat}</span>
           <span class="who">${escapeHtml(displayName(index))}</span>
           <span class="pts">0</span>
-        </button>`);
+        </button>`;
+        tabs[playOrder().indexOf(index)] = tab;
 
         panels.push(`<section class="panel" id="panel-${index}" data-sheet="${index}" role="tabpanel" aria-labelledby="tab-${index}">
           ${identityMarkup(index)}
-          <h2 class="section-title">Partie supérieure</h2>
-          <div class="rows">
-            ${UPPER.map((cat) => scoreRow(index, cat)).join("")}
-            ${totalRow("upper", "Total")}
-            ${totalRow("bonus", "Bonus", "bonus-hint")}
-            ${totalRow("upper-total", "Total partie supérieure")}
+          <div class="sheet-half">
+            <h2 class="section-title">Partie supérieure</h2>
+            <div class="rows">
+              ${UPPER.map((cat) => scoreRow(index, cat)).join("")}
+              ${totalRow("upper", "Total")}
+              ${totalRow("bonus", "Bonus", "bonus-hint")}
+              ${totalRow("upper-total", "Total partie supérieure")}
+            </div>
           </div>
-          <h2 class="section-title">Partie inférieure</h2>
-          <div class="rows">
-            ${LOWER.map((cat) => scoreRow(index, cat)).join("")}
-            ${totalRow("lower", "Total partie inférieure")}
+          <div class="sheet-half">
+            <h2 class="section-title">Partie inférieure</h2>
+            <div class="rows">
+              ${LOWER.map((cat) => scoreRow(index, cat)).join("")}
+              ${totalRow("lower", "Total partie inférieure")}
+            </div>
           </div>
           <div class="row row-score">
             <div class="label"><span><strong>Score</strong></span></div>
@@ -3052,6 +3615,7 @@
       if (chipButton) chipButton.disabled = controlLocked(playerIndex, catId);
       bar.disabled = controlLocked(playerIndex, catId);
       saveState();
+      rememberCompletedManches();
       refreshAll();
     }
 
@@ -3193,6 +3757,7 @@
       if (room.token) forgetRoom();
       state.screen = "create";
       state.view = "players";
+      state.historyId = "";
       state.timed = false;
       state.hints = true;
       state.playerCount = 1;
@@ -3262,6 +3827,10 @@
       if (event.target.id === "create-local") { draft.online = false; renderDraft(); }
       if (event.target.id === "create-online") { draft.online = true; draft.mode = "virtual"; renderDraft(); }
       if (event.target.id === "create-go") beginGame();
+      if (event.target.closest("#table-code")) {
+        copyTableCode();
+        return;
+      }
       if (event.target.id === "lobby-copy") copyInvite();
       if (event.target.id === "lobby-start") startMatch();
       if (event.target.id === "settings-open") {
@@ -3271,7 +3840,13 @@
       if (event.target.id === "settings-close" || event.target.id === "settings-dialog") {
         document.getElementById("settings-dialog").hidden = true;
       }
-      if (event.target.id === "room-leave" || event.target.id === "room-leave-lobby") openLeaveDialog();
+      if (event.target.closest("#rules-open")) {
+        document.getElementById("rules-dialog").hidden = false;
+      }
+      if (event.target.id === "rules-close" || event.target.id === "rules-dialog") {
+        document.getElementById("rules-dialog").hidden = true;
+      }
+      if (event.target.closest("#room-leave") || event.target.id === "room-leave-lobby") openLeaveDialog();
       if (event.target.id === "leave-cancel" || event.target.id === "leave-dialog") closeLeaveDialog();
       if (event.target.id === "leave-confirm") {
         closeLeaveDialog();
@@ -3302,8 +3877,10 @@
         render();
         return;
       }
-      if (event.target.id === "mode-players") setMode("players");
-      if (event.target.id === "mode-evolution") setMode("evolution");
+      if (event.target.closest("#page-evolution")) {
+        setMode(state.view === "evolution" ? "players" : "evolution");
+        return;
+      }
       if (event.target.id === "prev") step(-1);
       if (event.target.id === "next") step(1);
       if (event.target.id === "less-players") setPlayerCount(state.playerCount - 1);
@@ -3314,6 +3891,10 @@
       if (helpButton) {
         const line = document.getElementById(helpButton.dataset.help);
         if (line) line.hidden = !line.hidden;
+        return;
+      }
+      if (event.target.closest("#add-manche") || event.target.id === "podium-manche") {
+        addManche();
         return;
       }
       if (event.target.id === "reset") addManche();
@@ -3334,16 +3915,17 @@
         run();
       }
       if (event.target.id === "bar-no") closeBar();
-      if (event.target.id === "podium-close") {
-        document.getElementById("podium-dialog").hidden = true;
-        document.body.style.overflow = "";
-      }
+      if (event.target.id === "podium-close") closePodium();
       if (event.target.id === "dialog") closeDialog();
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !document.getElementById("leave-dialog").hidden) {
         closeLeaveDialog();
+        return;
+      }
+      if (event.key === "Escape" && !document.getElementById("rules-dialog").hidden) {
+        document.getElementById("rules-dialog").hidden = true;
         return;
       }
       if (event.key === "Escape" && !document.getElementById("settings-dialog").hidden) {
@@ -3375,6 +3957,38 @@
       ensureRoomPoll();
       refreshRoom();
     }
+    if (window.Prefs && typeof Prefs.onResume === "function") Prefs.onResume(resumeTable);
+
+    let pullStart = 0;
+    let pulling = false;
+    document.addEventListener("touchstart", (event) => {
+      const hint = document.getElementById("pull-hint");
+      if (hint) hint.hidden = true;
+      pulling = false;
+      if (!room.token || window.scrollY > 0 || event.touches.length !== 1) return;
+      if (event.target.closest("button, a, input, textarea")) return;
+      pullStart = event.touches[0].clientY;
+      pulling = true;
+    }, { passive: true });
+    document.addEventListener("touchmove", (event) => {
+      if (!pulling) return;
+      const hint = document.getElementById("pull-hint");
+      const drop = event.touches[0].clientY - pullStart;
+      if (!hint || window.scrollY > 0 || drop < 28) {
+        if (hint) hint.hidden = true;
+        return;
+      }
+      hint.hidden = false;
+      hint.textContent = drop > 72 ? "Relâcher pour recharger" : "Glisser pour recharger";
+    }, { passive: true });
+    document.addEventListener("touchend", () => {
+      const hint = document.getElementById("pull-hint");
+      const reload = Boolean(hint && !hint.hidden && hint.textContent === "Relâcher pour recharger");
+      if (hint) hint.hidden = true;
+      pulling = false;
+      if (reload) resumeTable();
+    });
+
     render();
   </script>
 </body>

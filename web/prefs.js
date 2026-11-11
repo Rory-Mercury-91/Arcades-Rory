@@ -67,5 +67,21 @@
   applyTheme(theme());
   document.addEventListener("DOMContentLoaded", () => applyTheme(theme()));
 
-  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet };
+  function onResume(callback) {
+    let last = 0;
+    function fire() {
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      callback();
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") fire();
+    });
+    window.addEventListener("pageshow", fire);
+    window.addEventListener("focus", fire);
+    window.addEventListener("yams-resume", fire);
+  }
+
+  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet, onResume };
 })();

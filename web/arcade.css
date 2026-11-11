@@ -79,7 +79,7 @@ a.back {
   flex: none;
 }
 
-.brand-common .link-mark {
+.brand-row > .link-mark {
   width: 40px;
   height: 40px;
   align-items: center;
@@ -521,3 +521,24 @@ button.ghost,
   font-weight: 700;
 }
 .choice button.is-on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+@media (min-width: 600px) {
+  body { max-width: 1040px; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .grid3 { max-width: 520px; }
+  .xo { font-size: 64px; }
+  .mine { font-size: 18px; border-radius: 8px; }
+  .dialog-card { width: min(560px, 100%); }
+
+  #play {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

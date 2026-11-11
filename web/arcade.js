@@ -70,6 +70,16 @@ const Arcade = (() => {
       timer = window.setInterval(pull, 1500);
     }
 
+    function wake() {
+      if (!token) return;
+      window.clearInterval(timer);
+      timer = 0;
+      start();
+      pull();
+    }
+
+    if (window.Prefs && typeof Prefs.onResume === "function") Prefs.onResume(wake);
+
     function stop() {
       window.clearInterval(timer);
       timer = 0;
@@ -189,12 +199,12 @@ const Arcade = (() => {
         <a class="icon-btn" href="parametres.html" aria-label="Paramètres">${gearIcon}</a>
         ${backButton}
       </div>` : "";
-    const common = tools ? `<div class="brand-common">
-        <a class="icon-btn" href="index.html" aria-label="Tous les jeux"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/></svg></a>
-        <span class="link-mark" id="shell-link" title="Sur ce téléphone" aria-label="Sur ce téléphone">
+    const linkMark = `<span class="link-mark" id="shell-link" title="Sur ce téléphone" aria-label="Sur ce téléphone">
           <svg class="link-off" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/><circle cx="12" cy="19" r="1.15" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 5l14 14"/></svg>
           <svg class="link-on" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 9.5c3.6-3 12.4-3 16 0M7.2 13c2.2-1.8 7.4-1.8 9.6 0M10 16.2c1.1-.8 2.9-.8 4 0"/><circle cx="12" cy="19" r="1.15" fill="currentColor"/></svg>
-        </span>
+        </span>`;
+    const common = tools ? `<div class="brand-common">
+        <a class="icon-btn" href="index.html" aria-label="Tous les jeux"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/></svg></a>
         ${backButton}
       </div>` : (options.hub ? "" : `<div class="brand-common">${backButton}</div>`);
     const toolsRow = tools ? `<div class="game-tools" id="shell-tools" hidden>
@@ -206,6 +216,7 @@ const Arcade = (() => {
         <button type="button" class="icon-btn" id="shell-settings-open" aria-label="Réglages">${gearIcon}</button>
       </div>` : "";
     header.innerHTML = `<div class="brand-row">
+      ${tools ? linkMark : ""}
       <h1>${escapeHtml(options.title || "Jeu")}</h1>
       ${common || hubLinks}
     </div>${toolsRow}`;

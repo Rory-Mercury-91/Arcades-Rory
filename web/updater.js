@@ -81,6 +81,9 @@
       .update-banner strong { display: block; }
       .update-banner span { color: var(--muted); font-size: 14px; }
       .update-banner .actions { display: flex; align-items: center; gap: 8px; flex: none; }
+      @media (min-width: 600px) {
+        .update-banner { max-width: 720px; }
+      }
       .update-banner button {
         height: 40px;
         border-radius: 12px;
