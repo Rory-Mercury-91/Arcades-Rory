@@ -75,6 +75,18 @@
     catch (error) { /* stockage refusé */ }
   }
 
+  const HAND_COLUMNS_KEY = "triomino-hand-columns";
+
+  function handColumns() {
+    try { return localStorage.getItem(HAND_COLUMNS_KEY) === "4" ? 4 : 3; }
+    catch (error) { return 3; }
+  }
+
+  function setHandColumns(count) {
+    try { localStorage.setItem(HAND_COLUMNS_KEY, Number(count) === 4 ? "4" : "3"); }
+    catch (error) { /* stockage refusé */ }
+  }
+
   applyTheme(theme());
   document.addEventListener("DOMContentLoaded", () => applyTheme(theme()));
 
@@ -94,5 +106,5 @@
     window.addEventListener("yams-resume", fire);
   }
 
-  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet, handPlace, setHandPlace, onResume };
+  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet, handPlace, setHandPlace, handColumns, setHandColumns, onResume };
 })();

@@ -317,6 +317,13 @@ const Arcade = (() => {
       pts.className = "pts";
       pts.textContent = String(scores[index]);
       item.append(seatNode, who, pts);
+      if (Number.isInteger(person.tiles)) {
+        const left = document.createElement("span");
+        left.className = "left";
+        const count = person.tiles;
+        left.textContent = count + (count > 1 ? " tuiles" : " tuile");
+        item.append(left);
+      }
       node.append(item);
     });
   }
@@ -886,6 +893,11 @@ const Arcade = (() => {
           <button type="button" data-hand="board">Sous le plateau</button>
           <button type="button" data-hand="modal">Dans Mes tuiles</button>
         </div>
+        <p class="status">La main aligne 3 ou 4 tuiles sur chaque ligne.</p>
+        <div class="choice" id="pref-hand-columns">
+          <button type="button" data-columns="3">3 par ligne</button>
+          <button type="button" data-columns="4">4 par ligne</button>
+        </div>
         <p class="lead">Aide</p>
         <p class="status" id="guide-note">L'aide guidée reprend à l'accueil, puis dans la partie.</p>
         <button type="button" class="primary" id="guide-reset">Relancer l'aide</button>
@@ -906,6 +918,10 @@ const Arcade = (() => {
       document.querySelectorAll("#pref-hand button").forEach((button) => {
         button.classList.toggle("is-on", button.dataset.hand === hand);
       });
+      const columns = window.Prefs && Prefs.handColumns() === 4 ? "4" : "3";
+      document.querySelectorAll("#pref-hand-columns button").forEach((button) => {
+        button.classList.toggle("is-on", button.dataset.columns === columns);
+      });
     }
     bindChoice("pref-theme", (button) => {
       if (window.Prefs) Prefs.setTheme(button.dataset.theme);
@@ -917,6 +933,10 @@ const Arcade = (() => {
     });
     bindChoice("pref-hand", (button) => {
       if (window.Prefs) Prefs.setHandPlace(button.dataset.hand);
+      paint();
+    });
+    bindChoice("pref-hand-columns", (button) => {
+      if (window.Prefs) Prefs.setHandColumns(Number(button.dataset.columns));
       paint();
     });
     document.getElementById("guide-reset").onclick = () => {

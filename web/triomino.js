@@ -316,7 +316,7 @@ const Trio = (function () {
     return "";
   }
 
-  function draw(state, index) {
+  function draw(state, index, assisted) {
     if (state.phase !== "play") return "La partie est terminée.";
     if (state.must) return "Tu dois d'abord poser la tuile piochée.";
     if (state.draws >= 3) return "Trois pioches maximum.";
@@ -328,12 +328,13 @@ const Trio = (function () {
     state.hands[actor].push(tile);
     state.scores[actor] -= 5;
     state.draws += 1;
-    if (spots(state.placed, tile).length) {
+    const help = assisted !== false;
+    if (help && spots(state.placed, tile).length) {
       state.must = tile.slice();
       state.last = { seat: actor, kind: "draw", gain: -5, tile: tile.slice(), bridge: false, hex: 0, bonus: 0 };
       return "";
     }
-    if (state.draws >= 3) {
+    if (help && state.draws >= 3) {
       state.scores[actor] -= 10;
       state.last = { seat: actor, kind: "pass", gain: -25, bridge: false, hex: 0, bonus: 0 };
       advance(state);
@@ -343,7 +344,18 @@ const Trio = (function () {
     return "";
   }
 
-  return { tiles: TILES, same, handValue, vertices, createGame, take, play, draw, spots, around, placement, canPlay };
+  function pass(state) {
+    if (state.phase !== "play") return "La partie est terminée.";
+    if (state.must) return "Tu dois d'abord poser la tuile piochée.";
+    if (state.draws < 3) return "Tu peux encore piocher.";
+    const actor = state.turn;
+    state.scores[actor] -= 10;
+    state.last = { seat: actor, kind: "pass", gain: -25, bridge: false, hex: 0, bonus: 0 };
+    advance(state);
+    return "";
+  }
+
+  return { tiles: TILES, same, handValue, vertices, createGame, take, play, draw, pass, spots, around, placement, canPlay };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = Trio;
@@ -361,6 +373,7 @@ if (typeof document !== "undefined") {
   let picked = null;
   let chosen = null;
   let zoom = 1;
+  let fitAsked = false;
   let dealPick = new Set();
   let dealKey = "";
   let aid = "guide";
@@ -383,7 +396,7 @@ if (typeof document !== "undefined") {
       ["Joueurs", String(players), "2 joueurs : 9 tuiles. De 3 à 5 joueurs : 7 tuiles."],
       ["Ouverture", each + " tuiles chacun", "Chacun choisit ses tuiles dans la pioche, face cachée, à tour de rôle. Puis chacun pioche une tuile de départ : la plus forte est posée au centre et désigne qui commence. Les autres retournent dans la pioche."],
       ["Cases", free ? "Libre" : "Guidé", "Guidé ne montre que les cases où la tuile peut marquer. Libre montre toutes les cases autour : tu tournes et tu vois si les chiffres collent."],
-      ["Pioche", "Tu choisis le dos", "Piocher étale les tuiles restantes, face cachée. Tu en choisis une. Elle coûte 5 points."],
+      ["Pioche", "Trois fois au plus", "Face cachée, 5 points. Guidé impose la tuile si elle se pose. Libre la laisse dans la main : tu la regardes, et tu repioches si tu ne peux pas la poser."],
       ["Points", "Somme, pont, hexagone", "La tuile marque ses trois chiffres. Pont +40. Hexagone +50, double +60, triple +70. Piocher coûte 5."],
       ["Table", online ? "En ligne · " + remote.code : "Sur ce téléphone", "Sur ce téléphone, on se passe l'écran. En ligne, chacun voit sa main."]
     ];
@@ -479,6 +492,32 @@ if (typeof document !== "undefined") {
       .sort((left, right) => right.score - left.score || left.index - right.index)
       .map((item) => item.name + " " + item.score)
       .join(" · ");
+  }
+
+  function tileWord(count) {
+    return count > 1 ? "tuiles" : "tuile";
+  }
+
+  function podiumHtml(model) {
+    const people = model.names.map((name, index) => ({
+      index,
+      name: name || ("Joueur " + (index + 1)),
+      total: Number(model.scores[index]) || 0,
+      tiles: Number(model.counts[index]) || 0
+    }));
+    const ranked = people.slice().sort((left, right) => right.total - left.total || left.index - right.index);
+    const winner = ranked.find((person) => person.index === Number(model.winner));
+    const lead = winner && Number(model.winner) >= 0 ? winner.name + " gagne." : "Égalité.";
+    const places = ranked.slice(0, Math.min(3, ranked.length));
+    const order = places.length === 2 ? [places[1], places[0]] : [places[1], places[0], places[2]].filter(Boolean);
+    const stand = order.map((person) => {
+      const place = ranked.indexOf(person) + 1;
+      return `<div class="place place-${place}"><span class="rank">${place}</span><span class="who">${Arcade.escapeHtml(person.name)}</span><span class="pts">${person.total}</span></div>`;
+    }).join("");
+    const list = ranked.map((person, index) => {
+      return `<li>${index + 1}. ${Arcade.escapeHtml(person.name)} · ${person.total} pts · ${person.tiles} ${tileWord(person.tiles)}</li>`;
+    }).join("");
+    return `<p>${Arcade.escapeHtml(lead)}</p><div class="podium ${places.length === 2 ? "is-duo" : "is-trio"}">${stand}</div><ul class="lobby-list">${list}</ul>`;
   }
 
   function dealLine(model) {
@@ -610,10 +649,18 @@ if (typeof document !== "undefined") {
     const numberLayer = document.createElementNS(NS, "g");
     svg.append(group);
     const all = [];
-    model.placed.forEach((item) => {
+    model.placed.forEach((item, index) => {
       const points = Trio.vertices(item.q, item.r, item.up).map(pixel);
-      const mine = item.seat === model.you ? " trio-tile trio-mine" : " trio-tile";
-      triangle(group, points, mine.trim(), cornerNumbers(item.tile, item.rot), "trio-num", 0.36, numberLayer);
+      const classes = ["trio-tile"];
+      if (item.seat === model.you) classes.push("trio-mine");
+      const last = index === model.placed.length - 1;
+      if (last) classes.push("trio-last");
+      const shape = triangle(group, points, classes.join(" "), cornerNumbers(item.tile, item.rot), "trio-num", 0.36, numberLayer);
+      if (last && shape) {
+        const title = document.createElementNS(NS, "title");
+        title.textContent = "Dernière tuile posée";
+        shape.append(title);
+      }
       all.push(...points);
     });
     cells.forEach((cell) => {
@@ -650,9 +697,30 @@ if (typeof document !== "undefined") {
     const width = Math.max(...xs) - minX + pad;
     const height = Math.max(...ys) - minY + pad;
     svg.setAttribute("viewBox", minX + " " + minY + " " + width + " " + height);
-    svg.setAttribute("width", String(Math.round(Math.max(320, width) * zoom)));
-    svg.setAttribute("height", String(Math.round(Math.max(220, height) * zoom)));
+    const boxWidth = Math.max(320, width);
+    const boxHeight = Math.max(220, height);
+    const fitting = fitAsked;
+    if (fitting) {
+      zoom = containZoom(boxWidth, boxHeight);
+      fitAsked = false;
+    }
+    svg.setAttribute("width", String(Math.round(boxWidth * zoom)));
+    svg.setAttribute("height", String(Math.round(boxHeight * zoom)));
     board.replaceChildren(svg);
+    if (fitting) {
+      board.scrollTop = 0;
+      board.scrollLeft = 0;
+    }
+  }
+
+  // Tout cadre le plateau dans l'espace visible, sans le dépasser.
+  function containZoom(boxWidth, boxHeight) {
+    const play = document.getElementById("play");
+    const roomWidth = Math.max(160, (play ? play.clientWidth : window.innerWidth) - 8);
+    const tall = play && play.classList.contains("is-board") ? 0.68 : 0.58;
+    const roomHeight = Math.max(180, Math.round(window.innerHeight * tall) - 16);
+    const scale = Math.min(roomWidth / boxWidth, roomHeight / boxHeight, 1);
+    return Math.max(0.2, Math.round(scale * 100) / 100);
   }
 
   function handInModal() {
@@ -665,6 +733,7 @@ if (typeof document !== "undefined") {
   }
 
   function paintHand(model) {
+    applyHandColumns(handRow);
     handRow.hidden = handInModal();
     handRow.replaceChildren();
     model.hand.forEach((tile, index) => {
@@ -685,11 +754,20 @@ if (typeof document !== "undefined") {
     });
   }
 
+  function handColumns() {
+    return window.Prefs && Prefs.handColumns() === 4 ? 4 : 3;
+  }
+
+  function applyHandColumns(node) {
+    if (node) node.style.setProperty("--hand-columns", String(handColumns()));
+  }
+
   function paintScores(model) {
     const active = model.phase === "done" ? model.winner : model.turn;
     Arcade.paintSeats(document.getElementById("scores"), model.names.map((name, index) => ({
       name,
       score: model.scores[index] || 0,
+      tiles: Number(model.counts[index]) || 0,
       active: index === active
     })));
   }
@@ -722,6 +800,8 @@ if (typeof document !== "undefined") {
     }
     const canDraw = model.interactive && !model.must && model.draws < 3 && model.pile > 0;
     drawButton.hidden = !canDraw;
+    const passButton = document.getElementById("pass-draw");
+    passButton.hidden = !aidIsFree() || !model.interactive || !!model.must || model.phase !== "play" || model.draws < 3;
   }
 
   function render() {
@@ -825,7 +905,9 @@ if (typeof document !== "undefined") {
 
   function noteEnd(model) {
     const done = model.phase === "done";
-    Arcade.announceOnce("triomino", done, `<p>${Arcade.escapeHtml(statusText(model))}</p>`);
+    Arcade.announceOnce("triomino", done, done ? podiumHtml(model) : "");
+    const again = document.getElementById("end-again");
+    if (again) again.textContent = "Nouvelle partie";
     if (!done) {
       wasDone = false;
       noted = false;
@@ -857,7 +939,7 @@ if (typeof document !== "undefined") {
       ["Donne", "Chacun pioche " + each + " tuiles, face cachée, à tour de rôle. Puis chacun choisit une tuile de départ. La plus forte est posée au centre et désigne qui commence. Les autres retournent dans la pioche."],
       ["Pose", "Les chiffres qui se touchent sont les mêmes. Touche une case, tourne la tuile avec la flèche, puis Poser. Reprendre retire la tuile."],
       ["Points", "La tuile marque la somme de ses chiffres. Pont +40. Hexagone +50, double +60, triple +70."],
-      ["Pioche", "Face cachée. Tu choisis un dos, puis Piocher. Elle coûte 5 points, trois fois au plus dans le tour. Trois pioches injouables : 10 points de plus et on passe."],
+      ["Pioche", "Face cachée, 5 points, trois fois au plus dans le tour. Guidé impose la tuile dès qu'elle se pose. Libre la laisse dans la main : tu cherches toi-même, et tu repioches si tu ne peux pas. Au bout de trois sans poser, Passer retire 10 points de plus."],
       ["Fin", "Poser sa dernière tuile donne 25 points plus la valeur des tuiles adverses. Si personne ne peut jouer, la plus petite main unique marque la différence. Le score général additionne les manches gardées sur ce téléphone. +1 en relance une avec les mêmes joueurs."]
     ];
   }
@@ -941,6 +1023,7 @@ if (typeof document !== "undefined") {
     const model = local ? localModel() : remoteModel();
     if (!model || !model.hand.length) return;
     const box = document.getElementById("mine-tiles");
+    applyHandColumns(box);
     box.replaceChildren();
     model.hand.forEach((tile, index) => {
       const button = document.createElement("button");
@@ -1168,7 +1251,7 @@ if (typeof document !== "undefined") {
   function takeFromPile(index) {
     closePile();
     if (local) {
-      const error = Trio.draw(local, index);
+      const error = Trio.draw(local, index, !aidIsFree());
       if (error) {
         showStatus(error);
         return;
@@ -1180,6 +1263,24 @@ if (typeof document !== "undefined") {
     }
     if (!remote) return;
     net.act("draw", { index }).catch((error) => { showStatus(error.message); });
+  }
+
+  function giveUp() {
+    const model = local ? localModel() : remoteModel();
+    if (!model || !aidIsFree() || !model.interactive || model.draws < 3) return;
+    if (local) {
+      const error = Trio.pass(local);
+      if (error) {
+        showStatus(error);
+        return;
+      }
+      picked = null;
+      chosen = null;
+      afterLocal();
+      return;
+    }
+    if (!remote) return;
+    net.act("pass", {}).catch((error) => { showStatus(error.message); });
   }
 
   function paintLobby(state) {
@@ -1248,14 +1349,15 @@ if (typeof document !== "undefined") {
     render();
   };
   document.getElementById("zoom-out").onclick = () => {
-    zoom = Math.max(0.7, Math.round((zoom - 0.25) * 100) / 100);
+    zoom = Math.max(0.2, Math.round((zoom - 0.25) * 100) / 100);
     render();
   };
   document.getElementById("zoom-fit").onclick = () => {
-    zoom = 1;
+    fitAsked = true;
     render();
   };
   document.getElementById("draw").onclick = openPile;
+  document.getElementById("pass-draw").onclick = giveUp;
   document.getElementById("pile-go").onclick = () => {
     if (pilePick == null) return;
     const index = pilePick;

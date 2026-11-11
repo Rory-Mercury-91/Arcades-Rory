@@ -209,6 +209,59 @@ button.table-code[hidden] { display: none !important; }
   color: var(--muted);
 }
 
+.podium {
+  display: grid;
+  gap: 8px;
+  align-items: end;
+  margin: 0 0 12px;
+}
+
+.podium.is-duo { grid-template-columns: 1fr 1.2fr; }
+.podium.is-trio { grid-template-columns: 1fr 1.25fr 1fr; }
+
+.place {
+  min-width: 0;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  text-align: center;
+}
+
+.place-1 {
+  padding-top: 16px;
+  padding-bottom: 22px;
+  background: var(--score-bg);
+  color: var(--score-ink);
+}
+
+.place .rank,
+.place .who,
+.place .pts { display: block; }
+
+.place .rank {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.place .who {
+  overflow: hidden;
+  margin-top: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 750;
+}
+
+.place .pts {
+  font-size: 22px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.place-1 .pts { font-size: 30px; }
+
 .settings-list { margin: 0; padding: 0; list-style: none; }
 .settings-list li {
   display: grid;
@@ -654,10 +707,20 @@ button[hidden] { display: none !important; }
   font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
+.tab .left {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .tab.is-leader { box-shadow: inset 0 3px 0 var(--leader); }
 .tab.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .tab.is-active .seat,
-.tab.is-active .who { color: inherit; }
+.tab.is-active .who,
+.tab.is-active .left { color: inherit; }
 .trio-stage { position: relative; width: max-content; max-width: 100%; margin: 0 auto; }
 .board-name {
   position: absolute;
@@ -688,13 +751,20 @@ button[hidden] { display: none !important; }
 .trio-tile, .trio-preview, .trio-wrong { fill: url(#trio-red); stroke: #f0d78c; stroke-width: 2.5; }
 .trio-preview, .trio-wrong { cursor: pointer; }
 .trio-mine { stroke: #ffe7a8; stroke-width: 3.5; }
+.trio-tile.trio-last { stroke: #fff6d0; stroke-width: 6; filter: drop-shadow(0 0 4px #ffe7a8); }
 .trio-ghost { fill: transparent; stroke: #e6c36a; stroke-width: 2; stroke-dasharray: 5 4; cursor: pointer; }
 .trio-hole { fill: #6a1218; stroke: #f0d78c; stroke-width: 1.2; pointer-events: none; }
 .trio-num, .trio-preview .trio-num, .trio-num.is-on, .trio-num.is-dim {
   fill: #f4d98a; font: 800 22px Georgia, serif; pointer-events: none;
 }
-.trio-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; overflow: visible; padding: 12px 2px 4px; }
+.trio-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; overflow: visible; padding: 12px 2px 4px; --hand-columns: 3; }
 .trio-hand button, .trio-pile button { border: 0; background: transparent; padding: 2px; border-radius: 12px; width: auto; min-height: 0; }
+.trio-hand button, #mine-tiles button {
+  flex: 0 0 calc((100% - (var(--hand-columns) - 1) * 10px) / var(--hand-columns));
+  width: calc((100% - (var(--hand-columns) - 1) * 10px) / var(--hand-columns));
+}
+.trio-hand button svg, #mine-tiles button svg { display: block; width: 100%; height: auto; }
+#mine-tiles { --hand-columns: 3; gap: 10px; }
 .trio-hand button.is-on, .trio-pile button.is-on { outline: 3px solid #f0d78c; }
 .trio-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 8px 0; }
 .trio-tools button {
