@@ -548,6 +548,12 @@
 
     .panel.is-active { display: block; }
 
+    .sheet-half + .sheet-half {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
     .identity {
       display: flex;
       gap: 10px;
@@ -686,10 +692,23 @@
 
     input.score.is-zero { color: var(--muted); }
 
+    input.score:not(.is-set),
+    .chip:not([aria-pressed="true"]) {
+      border-style: dashed;
+      color: var(--muted);
+    }
+
     input.score.is-set {
       background: var(--accent);
+      border-style: solid;
       border-color: var(--accent);
       color: var(--accent-ink);
+    }
+
+    .row:has(input.score.is-set),
+    .row:has(.chip[aria-pressed="true"]) {
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border-radius: 12px;
     }
 
     input::placeholder { color: var(--placeholder); }
@@ -713,6 +732,7 @@
 
     .chip[aria-pressed="true"] {
       background: var(--accent);
+      border-style: solid;
       border-color: var(--accent);
       color: var(--accent-ink);
     }
@@ -728,7 +748,7 @@
       color: var(--ink);
     }
 
-    .bar::before {
+    .bar[aria-pressed="true"]::before {
       content: "";
       position: absolute;
       left: 13px;
@@ -1188,7 +1208,7 @@
       text-align: center;
     }
 
-    .sheet-totals { display: block; }
+    .section-totals { margin-top: 10px; }
 
     .gate, .lobby {
       margin: 12px 16px 0;
@@ -1313,25 +1333,6 @@
     .pair .count span { min-width: 28px; }
     .pair-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 13px; }
     .option-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; color: var(--muted); font-size: 13px; }
-    .seat-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 0 0 10px;
-    }
-    .seat-badge {
-      display: inline-block;
-      margin: 0;
-      min-width: 0;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--total-bg);
-      font-weight: 750;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
     #room-note[hidden], #pull-hint[hidden] { display: none !important; }
 
     @media (min-width: 600px) {
@@ -1358,19 +1359,38 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         column-gap: 22px;
-        align-items: start;
+        align-items: stretch;
+      }
+
+      .panel.is-active .sheet-half + .sheet-half {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+        position: relative;
+      }
+
+      .panel.is-active .sheet-half + .sheet-half::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -12px;
+        width: 1px;
+        background: var(--line);
       }
 
       .panel .identity,
       .panel .rule-note,
-      .panel .sheet-totals,
       .panel .row-score { grid-column: 1 / -1; }
 
-      .sheet-totals {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        column-gap: 22px;
-        align-items: end;
+      .panel.is-active .sheet-half {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel.is-active .section-totals {
+        margin-top: auto;
+        padding-top: 12px;
       }
     }
 
@@ -1403,6 +1423,16 @@
             <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" fill="currentColor"/>
           </svg>
         </a>
+        <button type="button" class="icon-btn" id="page-game" aria-label="Jeu" aria-pressed="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="8.5" cy="8.5" r="1.25" fill="currentColor"/>
+            <circle cx="15.5" cy="8.5" r="1.25" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.25" fill="currentColor"/>
+            <circle cx="8.5" cy="15.5" r="1.25" fill="currentColor"/>
+            <circle cx="15.5" cy="15.5" r="1.25" fill="currentColor"/>
+          </svg>
+        </button>
         <button type="button" class="icon-btn" id="page-evolution" aria-label="Évolution" aria-pressed="false">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="13" width="4.5" height="8" rx="1.2" fill="currentColor"/>
@@ -1527,9 +1557,6 @@
   </section>
 
   <section class="tray" id="tray">
-    <div class="seat-row">
-      <p class="seat-badge" id="seat-badge"></p>
-    </div>
     <div class="play-mode" role="group" aria-label="Façon de lancer" hidden>
       <button type="button" id="play-virtual">Dés du téléphone</button>
       <button type="button" id="play-physical">Dés physiques</button>
@@ -1965,7 +1992,7 @@
       const barButton = `<button type="button" class="bar" aria-pressed="${barred ? "true" : "false"}" aria-label="${escapeHtml(barLabel)}"${lockControl ? " disabled" : ""}></button>`;
       const field = cat.fixed
         ? `<button type="button" class="chip" data-value="${cat.fixed}" aria-pressed="${value === String(cat.fixed) ? "true" : "false"}" aria-label="Marquer ${cat.fixed} points"${lockControl ? " disabled" : ""}>${cat.fixed}</button>`
-        : `<input class="score${filled ? " is-set" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2" placeholder="–" aria-label="${escapeHtml(cat.label)}" data-max="${categoryMax(cat)}" value="${barred ? "" : escapeHtml(value)}"${barred || lockInput ? " disabled" : ""}>`;
+        : `<input class="score${filled ? " is-set" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2" placeholder="" aria-label="${escapeHtml(cat.label)}" data-max="${categoryMax(cat)}" value="${barred ? "" : escapeHtml(value)}"${barred || lockInput ? " disabled" : ""}>`;
       return `<div class="row${barred ? " is-barred" : ""}" data-sheet="${playerIndex}" data-cat="${cat.id}">
         <div class="label">${cat.pips ? dieMarkup(cat.pips) : ""}<span><strong>${escapeHtml(cat.label)}</strong><small>${escapeHtml(cat.hint)}</small></span></div>
         <div class="controls">
@@ -2000,10 +2027,10 @@
     }
 
     function identityMarkup(index) {
-      if (state.playerCount < 2) return "";
       const name = sheetAt(index).name.trim() || ("Joueur " + (index + 1));
+      const seat = state.playerCount > 1 ? `<div class="seat">#${index + 1}</div>` : "";
       return `<div class="identity">
-        <div class="seat">#${index + 1}</div>
+        ${seat}
         <strong class="sheet-name">${escapeHtml(name)}</strong>
       </div>`;
     }
@@ -2725,9 +2752,6 @@
       if (evolution || showGate() || inLobby()) return;
       const online = Boolean(room.token);
       const physical = playMode === "physical";
-      const badge = document.getElementById("seat-badge");
-      const badgeIndex = online ? room.you : state.activePlayer;
-      if (badge && badgeIndex >= 0) badge.textContent = playerName(badgeIndex);
       const mine = yourTurn();
       const playerIndex = online ? room.you : state.activePlayer;
       document.getElementById("play-virtual").classList.toggle("is-active", !physical);
@@ -3382,8 +3406,8 @@
       mark.setAttribute("aria-label", label);
     }
 
-    function paintEvolutionButton(on) {
-      const button = document.getElementById("page-evolution");
+    function paintModeButton(id, on) {
+      const button = document.getElementById(id);
       if (!button) return;
       button.classList.toggle("is-active", on);
       button.setAttribute("aria-pressed", on ? "true" : "false");
@@ -3394,7 +3418,10 @@
       const current = book();
       const online = Boolean(room.token);
       paintLink(online);
-      paintEvolutionButton(evolution);
+      paintModeButton("page-game", !evolution);
+      paintModeButton("page-evolution", evolution);
+      const back = document.getElementById("page-back");
+      if (back) back.setAttribute("aria-label", evolution ? "Retour au jeu" : "Retour");
       rememberCompletedManches();
       const gateOn = showGate();
       const lobbyOn = inLobby();
@@ -3504,26 +3531,24 @@
             <div class="rows">
               ${UPPER.map((cat) => scoreRow(index, cat)).join("")}
             </div>
+            <div class="rows section-totals">
+              ${totalRow("upper", "Total partie supérieure")}
+              ${totalRow("bonus", "Bonus", "bonus-hint")}
+              ${totalRow("upper-total", "Supérieur + bonus")}
+            </div>
           </div>
           <div class="sheet-half">
             <h2 class="section-title">Partie inférieure</h2>
             <div class="rows">
               ${LOWER.map((cat) => scoreRow(index, cat)).join("")}
             </div>
-          </div>
-          <p class="rule-note">Le trait barre une case : elle compte zéro.</p>
-          <div class="sheet-totals">
-            <div class="rows">
-              ${totalRow("upper", "Total")}
-              ${totalRow("bonus", "Bonus", "bonus-hint")}
-              ${totalRow("upper-total", "Total partie supérieure")}
-            </div>
-            <div class="rows">
+            <div class="rows section-totals">
               ${totalRow("lower", "Total partie inférieure")}
             </div>
           </div>
+          <p class="rule-note">Barrer une case : elle compte zéro.</p>
           <div class="row row-score">
-            <div class="label"><span><strong>Score</strong></span></div>
+            <div class="label"><span><strong>Score général</strong></span></div>
             <strong class="num" data-field="score" aria-live="polite">0</strong>
           </div>
         </section>`);
@@ -3841,8 +3866,11 @@
         render();
       }
       if (event.target.closest("#page-back")) {
-        if (room.token) openLeaveDialog();
-        else window.location.href = "index.html";
+        if (isEvolutionView()) {
+          setMode("players");
+          return;
+        }
+        window.location.href = "index.html";
         return;
       }
       if (event.target.id === "create-less-players") { draft.players = Math.max(1, draft.players - 1); renderDraft(); }
@@ -3909,8 +3937,12 @@
         render();
         return;
       }
+      if (event.target.closest("#page-game")) {
+        setMode("players");
+        return;
+      }
       if (event.target.closest("#page-evolution")) {
-        setMode(state.view === "evolution" ? "players" : "evolution");
+        setMode("evolution");
         return;
       }
       if (event.target.id === "less-players") setPlayerCount(state.playerCount - 1);
