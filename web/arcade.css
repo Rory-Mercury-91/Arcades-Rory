@@ -307,6 +307,22 @@ a.quiet {
 
 #sweep { margin-top: 14px; }
 
+.open-tables { margin-top: 6px; }
+.open-tables .lead { margin: 0 0 8px; }
+.open-tables button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  text-align: left;
+}
+.open-tables button small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .stack { display: flex; flex-direction: column; gap: 8px; }
 
 .stack button {

@@ -30,21 +30,86 @@ const Arcade = (() => {
     return data;
   }
 
+  const OPEN_KEY = "arcade-open-tables";
+
+  function loadOpen() {
+    try {
+      const data = JSON.parse(localStorage.getItem(OPEN_KEY) || "[]");
+      if (!Array.isArray(data)) return [];
+      return data.filter((row) => row && row.game && row.code && row.token);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveOpen(rows) {
+    try {
+      localStorage.setItem(OPEN_KEY, JSON.stringify(rows.slice(0, 12)));
+    } catch (error) {
+      // Le stockage local peut être refusé.
+    }
+  }
+
   function remember(game, code, token) {
-    localStorage.setItem("arcade-" + game + "-code", code);
-    localStorage.setItem("arcade-" + game + "-token", token);
+    const clean = String(code || "").toUpperCase();
+    if (!game || !clean || !token) return;
+    if (game === "yams") {
+      localStorage.setItem("yams-room-code", clean);
+      localStorage.setItem("yams-room-token", token);
+    } else {
+      localStorage.setItem("arcade-" + game + "-code", clean);
+      localStorage.setItem("arcade-" + game + "-token", token);
+    }
+    const rows = loadOpen().filter((row) => !(row.game === game && row.code === clean));
+    rows.unshift({ game, code: clean, token, at: Date.now() });
+    saveOpen(rows);
   }
 
   function recall(game) {
+    if (game === "yams") {
+      return {
+        code: localStorage.getItem("yams-room-code") || "",
+        token: localStorage.getItem("yams-room-token") || ""
+      };
+    }
     return {
       code: localStorage.getItem("arcade-" + game + "-code") || "",
       token: localStorage.getItem("arcade-" + game + "-token") || ""
     };
   }
 
-  function forget(game) {
+  function unpinTable(game, code) {
+    const clean = String(code || "").toUpperCase();
+    if (!game || !clean) return;
+    saveOpen(loadOpen().filter((row) => !(row.game === game && row.code === clean)));
+    const saved = recall(game);
+    if (String(saved.code || "").toUpperCase() !== clean) return;
+    if (game === "yams") {
+      localStorage.removeItem("yams-room-code");
+      localStorage.removeItem("yams-room-token");
+      return;
+    }
     localStorage.removeItem("arcade-" + game + "-code");
     localStorage.removeItem("arcade-" + game + "-token");
+  }
+
+  function forget(game) {
+    unpinTable(game, recall(game).code);
+  }
+
+  function seedOpen() {
+    const rows = loadOpen();
+    function add(game, code, token) {
+      const clean = String(code || "").toUpperCase();
+      if (!clean || !token) return;
+      if (rows.some((row) => row.game === game && row.code === clean)) return;
+      rows.unshift({ game, code: clean, token, at: Date.now() });
+    }
+    GAMES.forEach((game) => {
+      const saved = recall(game.id);
+      add(game.id, saved.code, saved.token);
+    });
+    saveOpen(rows);
   }
 
   function room(game, onState, onError) {
@@ -416,9 +481,67 @@ const Arcade = (() => {
     const yamsCode = localStorage.getItem("yams-room-code") || "";
     const yamsToken = yamsCode === clean ? (localStorage.getItem("yams-room-token") || "") : "";
     const data = await rpc("yams_join_room", { p_code: clean, p_name: who, p_token: yamsToken });
-    localStorage.setItem("yams-room-code", data.state.code);
-    localStorage.setItem("yams-room-token", data.token);
+    remember("yams", data.state.code, data.token);
     window.location.href = "yams.html";
+  }
+
+  let openEpoch = 0;
+
+  function tableNames(game, state) {
+    if (!state) return [];
+    if (game === "yams") return (state.players || []).map((player) => player && player.name).filter(Boolean);
+    return (state.names || []).filter(Boolean);
+  }
+
+  async function paintOpenTables() {
+    const box = document.getElementById("open-tables");
+    if (!box) return;
+    const epoch = ++openEpoch;
+    seedOpen();
+    const rows = loadOpen();
+    if (!rows.length || !onlineOk()) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = `<p class="lead">En cours</p><div class="stack" id="open-list"></div>`;
+    const list = document.getElementById("open-list");
+    const shown = [];
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      try {
+        const data = row.game === "yams"
+          ? await rpc("yams_state", { p_code: row.code, p_token: row.token })
+          : await rpc("arcade_state", { p_code: row.code, p_token: row.token });
+        if (epoch !== openEpoch) return;
+        if (!data.state || data.state.phase === "done") {
+          unpinTable(row.game, row.code);
+          continue;
+        }
+        shown.push({ game: row.game, code: row.code, token: row.token, names: tableNames(row.game, data.state) });
+      } catch (error) {
+        if (epoch !== openEpoch) return;
+        if (String(error.message).indexOf("introuvable") !== -1) unpinTable(row.game, row.code);
+      }
+    }
+    if (epoch !== openEpoch) return;
+    if (!shown.length || !list) {
+      box.innerHTML = "";
+      return;
+    }
+    list.innerHTML = shown.map((row) => {
+      const who = row.names.join(", ");
+      const detail = "Table " + row.code + (who ? " · " + who : "");
+      return `<button type="button" data-open-game="${escapeHtml(row.game)}" data-open-code="${escapeHtml(row.code)}"><strong>${escapeHtml(gameTitle(row.game))}</strong><small>${escapeHtml(detail)}</small></button>`;
+    }).join("");
+    list.querySelectorAll("button").forEach((button) => {
+      button.onclick = () => {
+        const row = loadOpen().find((item) => item.game === button.dataset.openGame && item.code === button.dataset.openCode);
+        if (!row) return;
+        remember(row.game, row.code, row.token);
+        const found = GAMES.find((item) => item.id === row.game);
+        window.location.href = found ? found.href : "index.html";
+      };
+    });
   }
 
   function mountDoor() {
@@ -429,6 +552,7 @@ const Arcade = (() => {
       document.getElementById("door-create").classList.toggle("hidden", step !== "create");
       document.getElementById("door-join").classList.toggle("hidden", step !== "join");
       shell.setBack(step !== "home");
+      if (step === "home") paintOpenTables();
     }
     shell = mountShell({
       title: "Jeux",
@@ -441,6 +565,7 @@ const Arcade = (() => {
       <section id="door-home" class="stack">
         <button type="button" id="door-go-create">Créer une partie</button>
         <button type="button" id="door-go-join">Rejoindre une partie</button>
+        <div class="open-tables" id="open-tables"></div>
       </section>
       <section id="door-create" class="hidden">
         <nav class="cards" id="hub-games"></nav>
@@ -455,6 +580,7 @@ const Arcade = (() => {
     document.getElementById("hub-games").innerHTML = gameCards();
     document.getElementById("door-go-create").onclick = () => showDoor("create");
     document.getElementById("door-go-join").onclick = () => showDoor("join");
+    paintOpenTables();
     const codeInput = document.getElementById("join-code");
     codeInput.addEventListener("input", () => { codeInput.value = codeInput.value.toUpperCase(); });
     document.getElementById("join-go").onclick = () => {
@@ -697,6 +823,6 @@ const Arcade = (() => {
 
   return {
     onlineOk, escapeHtml, rpc, room, recordStats, statsView, mountShell, announceOnce, dismissEnd,
-    games: GAMES, gameTitle, playerName, mountDoor, mountSettings, joinTable, mountMatch
+    games: GAMES, gameTitle, playerName, remember, unpinTable, mountDoor, mountSettings, joinTable, mountMatch
   };
 })();

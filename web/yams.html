@@ -255,7 +255,6 @@
       color: var(--accent-ink);
     }
 
-    .pager[hidden],
     .tabs[hidden],
     .context[hidden],
     #evolution[hidden] { display: none !important; }
@@ -914,21 +913,6 @@
       color: var(--accent-ink);
     }
 
-    .pager {
-      display: flex;
-      gap: 8px;
-      margin: 14px 16px 0;
-    }
-
-    .pager button {
-      flex: 1;
-      height: 48px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--card);
-      font-weight: 700;
-    }
-
     .dialog[hidden] { display: none; }
 
     .dialog {
@@ -1027,6 +1011,16 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 8px;
+    }
+
+    .dice-row.is-opening {
+      display: flex;
+      justify-content: center;
+    }
+
+    .dice-row.is-opening .cube {
+      width: calc((100% - 32px) / 5);
+      flex: none;
     }
 
     .cube {
@@ -1188,17 +1182,20 @@
     }
 
     .rule-note {
-      margin: 0 0 8px;
+      margin: 8px 0;
       color: var(--muted);
       font-size: 12px;
+      text-align: center;
     }
+
+    .sheet-totals { display: block; }
 
     .gate, .lobby {
       margin: 12px 16px 0;
     }
 
     .gate[hidden], .lobby[hidden],
-    #reset[hidden], #reset-top[hidden], #intro[hidden], #panels[hidden], .modes[hidden], .game-tools[hidden],
+    #reset-top[hidden], #intro[hidden], #panels[hidden], .modes[hidden], .game-tools[hidden],
     #gate-home[hidden], #gate-create-form[hidden], #gate-join-form[hidden],
     #create-names[hidden] { display: none !important; }
 
@@ -1365,7 +1362,16 @@
       }
 
       .panel .identity,
+      .panel .rule-note,
+      .panel .sheet-totals,
       .panel .row-score { grid-column: 1 / -1; }
+
+      .sheet-totals {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 22px;
+        align-items: end;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1541,13 +1547,6 @@
   <main id="panels"></main>
   <section id="evolution" class="evolution" hidden></section>
 
-  <button type="button" class="reset" id="reset">Nouvelle partie</button>
-
-  <div class="pager">
-    <button type="button" id="prev">Précédent</button>
-    <button type="button" id="next">Suivant</button>
-  </div>
-
   <div class="dialog is-center" id="leave-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="leave-title">
       <h2 id="leave-title">Quitter la table</h2>
@@ -1625,6 +1624,7 @@
   </div>
 
   <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
   <script>
     // Même règles que la grille Chance : bonus 35 si As à Six ≥ 63.
     const STORAGE_KEY = "yams-chance-5-v3";
@@ -1750,11 +1750,23 @@
       return next.some((face, index) => face > 0 && !((previous[index] || 0) > 0));
     }
 
+    function openingFace(index) {
+      const face = Number((room.opening || [])[index]);
+      return face >= 1 && face <= 6 ? face : 0;
+    }
+
+    function openingShown() {
+      if (!room.token) return false;
+      if (room.phase === "opening") return true;
+      return (room.opening || []).some((face) => Number(face) >= 1)
+        && state.players.slice(0, state.playerCount).every((player) => !hasEntry(player.manches[state.activeManche]));
+    }
+
     function openingTied() {
       let seenZero = false;
       let faceAfterZero = false;
       playOrder().forEach((seat) => {
-        if ((room.opening[seat] || 0) > 0) {
+        if (openingFace(seat) > 0) {
           if (seenZero) faceAfterZero = true;
         } else seenZero = true;
       });
@@ -1954,16 +1966,13 @@
       const field = cat.fixed
         ? `<button type="button" class="chip" data-value="${cat.fixed}" aria-pressed="${value === String(cat.fixed) ? "true" : "false"}" aria-label="Marquer ${cat.fixed} points"${lockControl ? " disabled" : ""}>${cat.fixed}</button>`
         : `<input class="score${filled ? " is-set" : ""}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2" placeholder="–" aria-label="${escapeHtml(cat.label)}" data-max="${categoryMax(cat)}" value="${barred ? "" : escapeHtml(value)}"${barred || lockInput ? " disabled" : ""}>`;
-      const note = cat.id === "six" || cat.id === "chance"
-        ? `<p class="rule-note">Le trait barre une case : elle compte zéro.</p>`
-        : "";
       return `<div class="row${barred ? " is-barred" : ""}" data-sheet="${playerIndex}" data-cat="${cat.id}">
         <div class="label">${cat.pips ? dieMarkup(cat.pips) : ""}<span><strong>${escapeHtml(cat.label)}</strong><small>${escapeHtml(cat.hint)}</small></span></div>
         <div class="controls">
           ${field}
           ${barButton}
         </div>
-      </div>${note}`;
+      </div>`;
     }
 
     function totalRow(field, label, hint) {
@@ -2412,7 +2421,9 @@
     }
 
     function paintTumble() {
-      document.querySelectorAll("#dice-row .cube").forEach((cube) => {
+      const opening = document.querySelectorAll("#dice-row .cube.is-opening");
+      const cubes = opening.length ? opening : document.querySelectorAll("#dice-row .cube");
+      cubes.forEach((cube) => {
         if (cube.classList.contains("is-held")) return;
         cube.classList.add("is-rolling");
         cube.innerHTML = dieMarkup(1 + Math.floor(Math.random() * 6));
@@ -2470,17 +2481,24 @@
     }
 
     function rememberRoom() {
+      if (room.code && room.token && window.Arcade && typeof Arcade.remember === "function") {
+        Arcade.remember("yams", room.code, room.token);
+        return;
+      }
       sessionSet("yams-room-code", room.code);
       sessionSet("yams-room-token", room.token);
     }
 
     function forgetRoom() {
+      const code = room.code;
       room.code = "";
       room.token = "";
       room.you = -1;
       room.revision = 0;
       room.error = "";
-      rememberRoom();
+      sessionSet("yams-room-code", "");
+      sessionSet("yams-room-token", "");
+      if (code && window.Arcade && typeof Arcade.unpinTable === "function") Arcade.unpinTable("yams", code);
       resetDice();
       diceSeen = false;
       openingMine = false;
@@ -2595,7 +2613,12 @@
       room.manche = remote.manche || 0;
       room.mode = remote.mode || "virtual";
       room.hints = remote.hints !== false;
-      room.opening = Array.isArray(remote.opening) ? remote.opening : [];
+      room.opening = Array.isArray(remote.opening)
+        ? remote.opening.map((value) => {
+          const face = Number(value);
+          return face >= 1 && face <= 6 ? face : 0;
+        })
+        : [];
       room.order = Array.isArray(remote.order) ? remote.order : [];
       room.error = "";
       rememberRoom();
@@ -2719,13 +2742,24 @@
         document.getElementById("dice-roll").hidden = false;
         document.getElementById("end-turn").hidden = true;
         document.getElementById("dice-hints").innerHTML = "";
-        document.getElementById("dice-row").innerHTML = `<button type="button" class="cube" disabled aria-label="Dé de départ"><span class="die-empty">?</span></button>`;
+        const row = document.getElementById("dice-row");
+        row.classList.add("is-opening");
+        const cubes = [];
+        for (let index = 0; index < state.playerCount; index += 1) {
+          const face = openingFace(index);
+          const pending = index === room.turn && !face;
+          const body = face ? dieMarkup(face) : `<span class="die-empty">?</span>`;
+          const label = "Dé de départ de " + playerName(index) + (face ? ", " + face : "");
+          cubes.push(`<button type="button" class="cube${pending ? " is-opening" : ""}" disabled aria-label="${escapeHtml(label)}">${body}</button>`);
+        }
+        row.innerHTML = cubes.join("");
         const roll = document.getElementById("dice-roll");
         roll.disabled = !mine;
         roll.textContent = "Lancer";
         const known = [];
         for (let index = 0; index < state.playerCount; index += 1) {
-          if (room.opening[index] > 0) known.push(playerName(index) + " " + room.opening[index]);
+          const face = openingFace(index);
+          if (face) known.push(playerName(index) + " " + face);
         }
         const tied = openingTied();
         let text = mine
@@ -2737,7 +2771,9 @@
         document.getElementById("room-note").hidden = true;
         return;
       }
-      document.getElementById("dice-row").innerHTML = dice.faces.map((face, index) => {
+      const row = document.getElementById("dice-row");
+      row.classList.remove("is-opening");
+      row.innerHTML = dice.faces.map((face, index) => {
         const body = face ? dieMarkup(face) : `<span class="die-empty">?</span>`;
         const disabled = !mine || dice.rolls === 0 || dice.rolls >= 3;
         return `<button type="button" class="cube${dice.held[index] ? " is-held" : ""}" data-die="${index}" aria-pressed="${dice.held[index] ? "true" : "false"}" aria-label="Dé ${index + 1}"${disabled ? " disabled" : ""}>${body}</button>`;
@@ -2755,7 +2791,8 @@
       if (online && room.opening.some((face) => face > 0) && state.players.slice(0, state.playerCount).every((player) => !hasEntry(player.manches[state.activeManche]))) {
         const draw = [];
         for (let index = 0; index < state.playerCount; index += 1) {
-          if (room.opening[index]) draw.push(playerName(index) + " " + room.opening[index]);
+          const face = openingFace(index);
+          if (face) draw.push(playerName(index) + " " + face);
         }
         if (draw.length) status.textContent = "Départ : " + draw.join(", ") + ". " + status.textContent;
       }
@@ -3366,7 +3403,6 @@
       if (gateOn && !evolution) renderDraft();
       document.getElementById("intro").hidden = gateOn && !evolution;
       document.querySelector(".game-tools").hidden = state.screen !== "play";
-      document.getElementById("reset").hidden = gateOn || lobbyOn;
       document.getElementById("reset-top").hidden = state.screen !== "play";
       document.getElementById("add-manche").disabled = state.mancheCount >= MANCHE_MAX;
       if (gateOn && evolution) {
@@ -3376,7 +3412,6 @@
         document.getElementById("tray").hidden = true;
         document.getElementById("lobby").hidden = true;
         document.getElementById("panels").hidden = true;
-        document.querySelector(".pager").hidden = true;
         document.getElementById("tutorial").hidden = true;
         const context = document.getElementById("context");
         context.hidden = true;
@@ -3398,7 +3433,6 @@
         document.getElementById("panels").hidden = true;
         document.getElementById("evolution").hidden = true;
         document.getElementById("evolution").innerHTML = "";
-        document.querySelector(".pager").hidden = true;
         const context = document.getElementById("context");
         context.hidden = true;
         context.innerHTML = "";
@@ -3435,7 +3469,6 @@
         tableCode.textContent = room.code;
         tableCode.setAttribute("aria-label", "Copier l'invitation, table " + room.code);
       }
-      document.querySelector(".pager").hidden = evolution || (state.playerCount < 2 && state.mancheCount < 2);
       renderContext();
       if (evolution) {
         document.getElementById("tabs").innerHTML = "";
@@ -3452,15 +3485,15 @@
 
       const tabs = [];
       const panels = [];
-      const drawOpen = room.token && room.opening.some((face) => face > 0)
-        && state.players.slice(0, current.count).every((player) => !hasEntry(player.manches[state.activeManche]));
+      const openingNow = openingShown();
       for (let index = 0; index < current.count; index += 1) {
         const emptyName = sheetAt(index).name.trim() === "";
-        const seat = "#" + (index + 1) + (drawOpen && room.opening[index] > 0 ? " · " + room.opening[index] : "");
+        const face = openingFace(index);
+        const pts = openingNow ? (face ? String(face) : "–") : "0";
         const tab = `<button type="button" class="tab${emptyName ? " is-empty" : ""}" role="tab" id="tab-${index}" data-tab="${index}" aria-selected="false" aria-controls="panel-${index}">
-          <span class="seat">${seat}</span>
+          <span class="seat">#${index + 1}</span>
           <span class="who">${escapeHtml(displayName(index))}</span>
-          <span class="pts">0</span>
+          <span class="pts">${pts}</span>
         </button>`;
         tabs[playOrder().indexOf(index)] = tab;
 
@@ -3470,15 +3503,22 @@
             <h2 class="section-title">Partie supérieure</h2>
             <div class="rows">
               ${UPPER.map((cat) => scoreRow(index, cat)).join("")}
-              ${totalRow("upper", "Total")}
-              ${totalRow("bonus", "Bonus", "bonus-hint")}
-              ${totalRow("upper-total", "Total partie supérieure")}
             </div>
           </div>
           <div class="sheet-half">
             <h2 class="section-title">Partie inférieure</h2>
             <div class="rows">
               ${LOWER.map((cat) => scoreRow(index, cat)).join("")}
+            </div>
+          </div>
+          <p class="rule-note">Le trait barre une case : elle compte zéro.</p>
+          <div class="sheet-totals">
+            <div class="rows">
+              ${totalRow("upper", "Total")}
+              ${totalRow("bonus", "Bonus", "bonus-hint")}
+              ${totalRow("upper-total", "Total partie supérieure")}
+            </div>
+            <div class="rows">
               ${totalRow("lower", "Total partie inférieure")}
             </div>
           </div>
@@ -3514,7 +3554,10 @@
       const tab = document.getElementById("tab-" + index);
       if (!tab) return;
       tab.querySelector(".who").textContent = displayName(index);
-      tab.querySelector(".pts").textContent = String(result.score);
+      const face = openingFace(index);
+      tab.querySelector(".pts").textContent = openingShown()
+        ? (face ? String(face) : "–")
+        : String(result.score);
       tab.classList.toggle("is-empty", sheetAt(index).name.trim() === "");
     }
 
@@ -3554,17 +3597,6 @@
       const bar = document.querySelector(".topbar").offsetHeight;
       const top = panel.getBoundingClientRect().top + window.scrollY - bar - 8;
       window.scrollTo({ top: Math.max(0, top), behavior });
-    }
-
-    function step(delta) {
-      if (state.playerCount > 1) {
-        const next = (state.activePlayer + delta + state.playerCount) % state.playerCount;
-        showPlayer(next, true);
-        return;
-      }
-      state.activeManche = (state.activeManche + delta + state.mancheCount) % state.mancheCount;
-      saveState();
-      render();
     }
 
     function setPlayerCount(count) {
@@ -3749,7 +3781,6 @@
     function closeDialog() {
       document.getElementById("dialog").hidden = true;
       document.body.style.overflow = "";
-      document.getElementById("reset").focus();
     }
 
     function clearMatch() {
@@ -3882,8 +3913,6 @@
         setMode(state.view === "evolution" ? "players" : "evolution");
         return;
       }
-      if (event.target.id === "prev") step(-1);
-      if (event.target.id === "next") step(1);
       if (event.target.id === "less-players") setPlayerCount(state.playerCount - 1);
       if (event.target.id === "more-players") setPlayerCount(state.playerCount + 1);
       if (event.target.id === "less-manches") setMancheCount(state.mancheCount - 1);
@@ -3898,7 +3927,6 @@
         addManche();
         return;
       }
-      if (event.target.id === "reset") addManche();
       if (event.target.id === "reset-top") openDialog();
       if (event.target.id === "reset-confirm") clearMatch();
       if (event.target.id === "dialog-cancel") closeDialog();
