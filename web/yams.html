@@ -2277,7 +2277,8 @@
       phase: "play",
       error: "",
       notice: "",
-      opening: []
+      opening: [],
+      order: []
     };
     let roomTimer = 0;
     let renameTimer = 0;
@@ -2580,10 +2581,10 @@
       const nameInput = document.getElementById("settings-name");
       const typingName = Boolean(nameInput && document.activeElement === nameInput && remote.you >= 0);
       const keptName = typingName || pendingName !== null ? (pendingName !== null ? pendingName : state.players[remote.you].name) : null;
-      const previousOpening = room.opening.slice();
+      const previousOpening = (room.opening || []).slice();
       const previousTurn = room.turn;
       const previousPhase = room.phase;
-      const previousOrder = room.order.slice();
+      const previousOrder = (room.order || []).slice();
       room.code = remote.code;
       room.token = data.token || room.token;
       room.you = remote.you;
