@@ -150,6 +150,14 @@ const match = Arcade.mountMatch({
   game: "mines",
   board: "play",
   settings: minesSettings,
+  rules() {
+    return [
+      ["Cases", "Le chiffre compte les mines autour. Une mine élimine le joueur."],
+      ["Marquer", "Ouvrir découvre une case et passe le tour. Marquer pose une croix, sans passer le tour."],
+      ["Manche", "+1 relance une partie avec les mêmes joueurs. Les résultats restent dans Évolution, sur ce téléphone."]
+    ];
+  },
+  guide: minesSteps,
   onReset() { leaveTable(); },
   onLeave() { leaveTable(); },
   onLocal() { startLocal(); },
@@ -235,6 +243,7 @@ function paintLocal() {
   paintGrid(local.size, local.revealed, local.flags, over && local.mines ? local.mines : [], over);
   status.textContent = localText();
   Arcade.announceOnce("mines", over, `<p>${Arcade.escapeHtml(localText())}</p>`);
+  maybeGuide();
 }
 
 function nextAlive(state) {
@@ -329,6 +338,46 @@ function startLocal() {
   paintLocal();
 }
 
+function minesSteps() {
+  return [
+    ...Arcade.gateTour((mode) => match.setWhere(mode), {
+      title: "Démineur",
+      text: "Choisis la taille de la grille. Seul contre l'ordinateur, ou chacun son tour.",
+      target: () => document.getElementById("step-create")
+    }, "En ligne, de 2 à 4 joueurs. L'invitation s'affiche après la création. Tu lances quand tout le monde est là."),
+    Object.assign(Arcade.chromeStep(), { page: "play" }),
+    {
+      page: "play",
+      title: "La grille",
+      render: Arcade.pictured(
+        "Touche une case pour la découvrir. Le chiffre compte les mines autour. Une mine élimine.",
+        `<div class="coach-mine"><span>1</span><span>2</span><span class="is-bomb">*</span><span></span><span>1</span><span></span><span></span><span></span><span></span></div>`
+      ),
+      target: () => document.getElementById("grid")
+    },
+    {
+      page: "play",
+      title: "Marquer",
+      render(copy) {
+        copy.replaceChildren();
+        const note = document.createElement("p");
+        note.textContent = "Ouvrir découvre la case et passe le tour. Marquer pose une croix, sans passer le tour.";
+        const pair = document.createElement("div");
+        pair.className = "coach-pair";
+        pair.innerHTML = `<div class="sample"><span class="coach-token">2</span><span>Ouverte</span></div><div class="sample"><span class="coach-token is-mark">X</span><span>Marquée</span></div>`;
+        copy.append(note, pair);
+      },
+      target: () => document.getElementById("tool")
+    },
+    Arcade.lobbyStep()
+  ];
+}
+
+function maybeGuide() {
+  const playing = local ? !local.over : Boolean(remote && remote.phase === "play");
+  Arcade.playGuide("mines-tutorial", minesSteps, playing);
+}
+
 function paintLobby(state) {
   const names = state.names || [];
   const cap = Number(state.config && state.config.humans) || 2;
@@ -364,7 +413,7 @@ function paintRemote(state) {
 net = Arcade.room("mines", (state) => {
   local = null;
   remote = state;
-  shell.setOnline(true);
+  shell.setOnline(true, state.code);
   if (state.phase === "lobby") {
     Arcade.announceOnce("mines", false, "");
     paintLobby(state);
@@ -373,6 +422,7 @@ net = Arcade.room("mines", (state) => {
   show("play");
   paintRemote(state);
   Arcade.announceOnce("mines", state.phase === "done", `<p>${Arcade.escapeHtml(remoteText(state))}</p>`);
+  maybeGuide();
 }, match.noteError);
 
 function shiftPlayers(delta) {

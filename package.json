@@ -1,7 +1,7 @@
 {
   "name": "yams",
   "private": true,
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "Feuille de Yams. La table partagée est propre à cette application.",
   "scripts": {
     "tauri": "tauri",

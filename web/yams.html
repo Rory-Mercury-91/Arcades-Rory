@@ -556,9 +556,16 @@
 
     .identity {
       display: flex;
-      gap: 10px;
-      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      align-items: baseline;
+      justify-content: space-between;
       padding-bottom: 4px;
+    }
+
+    .identity .rule-note {
+      margin: 0 0 0 auto;
+      text-align: right;
     }
 
     .identity .seat {
@@ -617,6 +624,7 @@
       gap: 8px;
       align-items: center;
       min-height: 52px;
+      padding-inline: 8px;
     }
 
     .label {
@@ -748,7 +756,7 @@
       color: var(--ink);
     }
 
-    .bar[aria-pressed="true"]::before {
+    .bar::before {
       content: "";
       position: absolute;
       left: 13px;
@@ -757,9 +765,12 @@
       height: 2px;
       margin-top: -1px;
       background: currentColor;
+      opacity: 0.72;
       transform: rotate(-28deg);
       border-radius: 2px;
     }
+
+    .bar[aria-pressed="true"]::before { opacity: 1; }
 
     .bar[aria-pressed="true"] {
       background: var(--total-bg);
@@ -875,7 +886,8 @@
 
     #add-manche:disabled { opacity: 0.35; }
 
-    #podium-manche[hidden] { display: none !important; }
+    #podium-manche[hidden],
+    #podium-error[hidden] { display: none !important; }
 
     .reset {
       display: block;
@@ -1075,7 +1087,35 @@
     }
 
     .cube.is-held .die,
-    .cube.is-held .die-empty { outline: 3px solid var(--accent); }
+    .cube.is-held .die-empty {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+      outline: none;
+    }
+
+    .cube.is-held .die i.on { background: var(--accent-ink); }
+
+    .cube.is-held:disabled { opacity: 1; }
+
+    .coach-dice {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin: 4px 0 8px;
+    }
+
+    .coach-dice .sample {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .coach-dice .cube { width: 64px; }
 
     @keyframes tumble {
       0% { transform: rotate(-10deg) scale(0.9); }
@@ -1329,9 +1369,22 @@
       font-weight: 800;
     }
     .help-text { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
-    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .pair .count span { min-width: 28px; }
-    .pair-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 13px; }
+    .gate .lead { margin: 16px 0; color: var(--muted); }
+    .stepper {
+      display: grid;
+      grid-template-columns: 48px 1fr 48px;
+      gap: 8px;
+      align-items: center;
+    }
+    .stepper strong { text-align: center; font-size: 22px; }
+    .stepper button {
+      min-height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      font-weight: 700;
+    }
     .option-head { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; color: var(--muted); font-size: 13px; }
     #room-note[hidden], #pull-hint[hidden] { display: none !important; }
 
@@ -1380,7 +1433,6 @@
       }
 
       .panel .identity,
-      .panel .rule-note,
       .panel .row-score { grid-column: 1 / -1; }
 
       .panel.is-active .sheet-half {
@@ -1523,23 +1575,11 @@
           <span class="switch-knob"></span>
         </button>
       </div>
-      <div class="pair">
-        <div>
-          <span class="pair-label">Joueurs</span>
-          <div class="count" aria-label="Nombre de joueurs">
-            <button type="button" id="create-less-players" aria-label="Retirer un joueur">−</button>
-            <span><strong id="create-player-value">1</strong></span>
-            <button type="button" id="create-more-players" aria-label="Ajouter un joueur">+</button>
-          </div>
-        </div>
-        <div>
-          <span class="pair-label">Manches</span>
-          <div class="count" aria-label="Nombre de manches">
-            <button type="button" id="create-less-manches" aria-label="Retirer une manche">−</button>
-            <span><strong id="create-manche-value">1</strong></span>
-            <button type="button" id="create-more-manches" aria-label="Ajouter une manche">+</button>
-          </div>
-        </div>
+      <p class="lead">Joueurs</p>
+      <div class="stepper" aria-label="Nombre de joueurs">
+        <button type="button" id="create-less-players" aria-label="Retirer un joueur">−</button>
+        <strong id="create-player-value">1</strong>
+        <button type="button" id="create-more-players" aria-label="Ajouter un joueur">+</button>
       </div>
       <div id="create-names"></div>
       <p class="dice-status" id="create-error"></p>
@@ -1568,7 +1608,7 @@
       <button type="button" id="end-turn" hidden>Fin du tour</button>
     </div>
     <div class="hints" id="dice-hints"></div>
-    <p class="room-note" id="room-note">Les dés lancent sur ce téléphone. Une table en ligne utilise le serveur pour que chacun voie le même lancer.</p>
+    <p class="room-note" id="room-note" hidden></p>
   </section>
 
   <main id="panels"></main>
@@ -1613,16 +1653,6 @@
     </div>
   </div>
 
-  <div class="dialog is-center" id="tutorial" hidden>
-    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-      <p class="dice-status" id="tutorial-count"></p>
-      <h2 id="tutorial-title"></h2>
-      <p id="tutorial-copy"></p>
-      <button type="button" class="btn primary" id="tutorial-next">Suivant</button>
-      <button type="button" class="btn text" id="tutorial-skip">Passer</button>
-    </div>
-  </div>
-
   <div class="dialog is-center" id="bar-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="bar-title">
       <h2 id="bar-title">Es-tu sûr ?</h2>
@@ -1636,8 +1666,9 @@
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="podium-title">
       <h2 id="podium-title">Fin de partie</h2>
       <div id="podium-body"></div>
+      <p class="room-note" id="podium-error" hidden></p>
       <button type="button" class="btn primary" id="podium-manche">Nouvelle partie</button>
-      <button type="button" class="btn text" id="podium-close">Fermer</button>
+      <button type="button" class="btn text" id="podium-leave">Quitter</button>
     </div>
   </div>
 
@@ -2032,6 +2063,7 @@
       return `<div class="identity">
         ${seat}
         <strong class="sheet-name">${escapeHtml(name)}</strong>
+        <p class="rule-note">Barrer une case : elle compte zéro.</p>
       </div>`;
     }
 
@@ -2292,14 +2324,6 @@
     let rollEpoch = 0;
     let diceSeen = false;
     let openingMine = false;
-    const TUTORIAL = [
-      ["Yams", "Une feuille de score. Tu crées une partie sur ce téléphone, ou tu rejoins une table avec un code."],
-      ["Les dés", "Jusqu'à trois lancers. Entre deux lancers, touche un dé pour le garder."],
-      ["La feuille", "À la fin du tour, inscris le score sur une seule ligne. Une case vide reste disponible."],
-      ["Barrer", "Au troisième lancer, si rien ne marque, tu peux barrer une case. Elle compte zéro. L'application demande confirmation."],
-      ["Si tu veux", "Plusieurs joueurs, plusieurs manches, une aide, ou une table en ligne. Rien de tout ça n'est obligatoire."]
-    ];
-    let tutorialStep = 0;
     let barPending = null;
     let podiumKey = "";
     const room = {
@@ -2508,7 +2532,7 @@
     }
 
     function rememberRoom() {
-      if (room.code && room.token && window.Arcade && typeof Arcade.remember === "function") {
+      if (room.code && room.token && typeof Arcade.remember === "function") {
         Arcade.remember("yams", room.code, room.token);
         return;
       }
@@ -2525,7 +2549,7 @@
       room.error = "";
       sessionSet("yams-room-code", "");
       sessionSet("yams-room-token", "");
-      if (code && window.Arcade && typeof Arcade.unpinTable === "function") Arcade.unpinTable("yams", code);
+      if (code && typeof Arcade.unpinTable === "function") Arcade.unpinTable("yams", code);
       resetDice();
       diceSeen = false;
       openingMine = false;
@@ -2844,12 +2868,9 @@
       document.getElementById("room-leave").hidden = !online || inLobby();
       syncNameField();
       const note = document.getElementById("room-note");
-      note.hidden = online;
-      if (!online) {
-        note.textContent = physical
-          ? "Dés physiques : marque la case, puis termine le tour."
-          : "Les dés lancent sur ce téléphone.";
-      }
+      const showPhysical = !online && physical;
+      note.hidden = !showPhysical;
+      if (showPhysical) note.textContent = "Dés physiques : marque la case, puis termine le tour.";
     }
 
     function advanceLocalSeat() {
@@ -3022,7 +3043,7 @@
     function closeBar() {
       document.getElementById("bar-dialog").hidden = true;
       barPending = null;
-      if (document.getElementById("dialog").hidden && document.getElementById("tutorial").hidden) document.body.style.overflow = "";
+      if (document.getElementById("dialog").hidden) document.body.style.overflow = "";
     }
 
     async function onMark(catId, bar, confirmed) {
@@ -3063,7 +3084,7 @@
       return state.players[nameIndex()].name.trim();
     }
 
-    const draft = { players: 1, manches: 1, mode: "virtual", hints: true, online: false, names: [] };
+    const draft = { players: 1, mode: "virtual", hints: true, online: false, names: [] };
 
     function inLobby() {
       return Boolean(room.token) && room.phase === "lobby";
@@ -3082,7 +3103,6 @@
     function renderDraft() {
       if (draft.online) draft.mode = "virtual";
       document.getElementById("create-player-value").textContent = String(draft.players);
-      document.getElementById("create-manche-value").textContent = String(draft.manches);
       const diceSwitch = document.getElementById("create-dice");
       paintSwitch("create-dice", !draft.online && draft.mode === "physical");
       diceSwitch.disabled = draft.online;
@@ -3174,7 +3194,7 @@
         name = state.players[0].name;
       }
       state.playerCount = draft.players;
-      state.mancheCount = draft.manches;
+      state.mancheCount = 1;
       state.activePlayer = 0;
       state.activeManche = 0;
       state.timed = false;
@@ -3198,7 +3218,7 @@
           body: JSON.stringify({
             name,
             players: draft.players,
-            manches: draft.manches,
+            manches: 1,
             mode: "virtual",
             timed: false,
             hints: draft.hints
@@ -3269,6 +3289,16 @@
       document.body.style.overflow = "";
     }
 
+    function quitMatch() {
+      closePodium();
+      releaseSeat();
+      forgetRoom();
+      state.screen = "create";
+      state.historyId = "";
+      saveState();
+      window.location.href = "index.html";
+    }
+
     async function addManche() {
       if (state.mancheCount >= MANCHE_MAX) {
         room.error = "Cinq manches maximum.";
@@ -3301,6 +3331,11 @@
         applyRemote(data);
       } catch (error) {
         room.error = error.message;
+        const note = document.getElementById("podium-error");
+        if (note && !document.getElementById("podium-dialog").hidden) {
+          note.textContent = error.message;
+          note.hidden = false;
+        }
         renderTray();
       }
     }
@@ -3321,33 +3356,91 @@
       }
     }
 
-    function tutorialDone() {
-      try { return localStorage.getItem("yams-tutorial") === "1"; } catch (error) { return true; }
+    function playGuideSteps() {
+      return [
+        {
+          page: "gate",
+          title: "Yams",
+          render: Arcade.pictured(
+            "Dés du téléphone ou dés physiques. L'aide intelligente propose une case. Choisis les joueurs.",
+            `<div class="coach-choice"><span class="is-on">Sur ce téléphone</span><span>En ligne</span></div>`
+          ),
+          target: () => document.getElementById("gate-create-form"),
+          prepare() { draft.online = false; renderDraft(); }
+        },
+        {
+          page: "gate",
+          title: "En ligne",
+          render: Arcade.pictured(
+            "En ligne, les dés du téléphone sont imposés. Le code de la table s'affiche après la création.",
+            `<div class="coach-choice"><span>Sur ce téléphone</span><span class="is-on">En ligne</span></div><p class="coach-code">AB12</p>`
+          ),
+          target: () => document.getElementById("create-online"),
+          prepare() { draft.online = true; draft.mode = "virtual"; renderDraft(); }
+        },
+        {
+          page: "gate",
+          title: "À toi",
+          render: Arcade.pictured(
+            "Une fois l'aide finie, ce bouton lance la partie.",
+            `<p class="coach-go">Créer la partie</p>`
+          ),
+          target: () => document.getElementById("create-go"),
+          prepare() { draft.online = false; renderDraft(); }
+        },
+        Object.assign(Arcade.chromeStep(), { page: "play" }),
+        {
+          page: "play",
+          title: "Les dés",
+          render(copy) {
+            copy.replaceChildren();
+            const note = document.createElement("p");
+            const row = document.getElementById("dice-row");
+            note.textContent = row && row.hidden
+              ? "Avec les dés physiques, la grille seule sert à noter. Marque une case, puis termine le tour."
+              : "Jusqu'à trois lancers. Touche un dé pour le garder. Les autres seront relancés.";
+            const stage = document.createElement("div");
+            stage.className = "coach-stage";
+            const pair = document.createElement("div");
+            pair.className = "coach-dice";
+            pair.innerHTML = `<div class="sample"><span class="cube is-held">${dieMarkup(5)}</span><span>Gardé</span></div><div class="sample"><span class="cube">${dieMarkup(5)}</span><span>Non gardé</span></div>`;
+            stage.append(pair);
+            copy.append(note, stage);
+          },
+          target: () => {
+            const row = document.getElementById("dice-row");
+            if (row && !row.hidden) return row;
+            return document.getElementById("end-turn");
+          }
+        },
+        {
+          page: "play",
+          title: "La feuille",
+          render: Arcade.pictured(
+            "À la fin du tour, inscris le résultat sur une seule case. Une case vide reste disponible.",
+            `<div class="coach-sheet"><div><span>As</span><strong>15</strong></div><div><span>Deux</span><strong></strong></div><div><span>Brelan</span><strong></strong></div></div>`
+          ),
+          target: () => document.querySelector(".panel.is-active [data-cat='as']")
+        },
+        {
+          page: "play",
+          title: "Barrer",
+          render: Arcade.pictured(
+            "Ce trait barre la case. Elle compte zéro. L'application demande confirmation.",
+            `<div class="coach-sheet"><div class="is-bar"><span>Deux</span><strong>/</strong></div></div>`
+          ),
+          target: () => document.querySelector(".panel.is-active .bar")
+        },
+        Arcade.lobbyStep()
+      ];
     }
 
-    function finishTutorial() {
-      try { localStorage.setItem("yams-tutorial", "1"); } catch (error) { /* stockage refusé */ }
-      document.getElementById("tutorial").hidden = true;
-      document.body.style.overflow = "";
-    }
-
-    function paintTutorial() {
-      const step = TUTORIAL[tutorialStep];
-      document.getElementById("tutorial-count").textContent = (tutorialStep + 1) + " / " + TUTORIAL.length;
-      document.getElementById("tutorial-title").textContent = step[0];
-      document.getElementById("tutorial-copy").textContent = step[1];
-      document.getElementById("tutorial-next").textContent = tutorialStep === TUTORIAL.length - 1 ? "Commencer" : "Suivant";
-    }
-
-    function maybeTutorial() {
-      const dialog = document.getElementById("tutorial");
-      if (tutorialDone()) {
-        dialog.hidden = true;
-        return;
-      }
-      paintTutorial();
-      dialog.hidden = false;
-      document.body.style.overflow = "hidden";
+    function maybePlayGuide() {
+      const podium = document.getElementById("podium-dialog");
+      if (typeof Arcade === "undefined" || typeof Arcade.guideOn !== "function") return;
+      if (isEvolutionView()) return;
+      if (podium && !podium.hidden) return;
+      Arcade.guideOn("yams-tutorial", playGuideSteps, "all");
     }
 
     function sheetsComplete() {
@@ -3363,7 +3456,11 @@
     function maybePodium() {
       const dialog = document.getElementById("podium-dialog");
       const finished = sheetsComplete() || (Boolean(room.token) && room.phase === "done");
-      if (state.screen !== "play" || !finished || inLobby()) return;
+      if (state.screen !== "play" || !finished || inLobby()) {
+        if (!dialog.hidden) closePodium();
+        if (!finished) podiumKey = "";
+        return;
+      }
       const totals = [];
       for (let index = 0; index < state.playerCount; index += 1) totals.push(playerTotal(index));
       const key = state.playerCount + "x" + state.mancheCount + ":" + totals.join(",");
@@ -3387,12 +3484,17 @@
         body += `<ul class="lobby-list">${ranked.map((person, index) => `<li>${index + 1}. ${escapeHtml(person.name)} · ${person.total} pts</li>`).join("")}</ul>`;
       }
       document.getElementById("podium-body").innerHTML = body;
-      const add = document.getElementById("podium-manche");
-      const close = document.getElementById("podium-close");
+      const error = document.getElementById("podium-error");
+      if (error) {
+        error.hidden = true;
+        error.textContent = "";
+      }
+      const next = document.getElementById("podium-manche");
+      const leave = document.getElementById("podium-leave");
       const full = state.mancheCount >= MANCHE_MAX;
-      add.hidden = full;
-      close.classList.toggle("primary", full);
-      close.classList.toggle("text", !full);
+      next.hidden = full;
+      leave.classList.toggle("primary", full);
+      leave.classList.toggle("text", !full);
       dialog.hidden = false;
       document.body.style.overflow = "hidden";
     }
@@ -3439,7 +3541,6 @@
         document.getElementById("tray").hidden = true;
         document.getElementById("lobby").hidden = true;
         document.getElementById("panels").hidden = true;
-        document.getElementById("tutorial").hidden = true;
         const context = document.getElementById("context");
         context.hidden = true;
         context.innerHTML = "";
@@ -3463,10 +3564,9 @@
         const context = document.getElementById("context");
         context.hidden = true;
         context.innerHTML = "";
-        maybeTutorial();
+        maybePlayGuide();
         return;
       }
-      document.getElementById("tutorial").hidden = true;
       document.getElementById("panels").hidden = lobbyOn || evolution;
       document.getElementById("player-count-value").textContent = String(state.playerCount);
       document.getElementById("manche-count-value").textContent = String(state.mancheCount);
@@ -3546,7 +3646,6 @@
               ${totalRow("lower", "Total partie inférieure")}
             </div>
           </div>
-          <p class="rule-note">Barrer une case : elle compte zéro.</p>
           <div class="row row-score">
             <div class="label"><span><strong>Score général</strong></span></div>
             <strong class="num" data-field="score" aria-live="polite">0</strong>
@@ -3560,6 +3659,7 @@
       showPlayer(current.active, false);
       renderTray();
       maybePodium();
+      maybePlayGuide();
     }
 
     function refresh(index) {
@@ -3824,7 +3924,6 @@
       state.players = Array.from({ length: PLAYER_MAX }, blankPlayer);
       playMode = "virtual";
       draft.players = 1;
-      draft.manches = 1;
       draft.mode = "virtual";
       draft.hints = true;
       draft.online = false;
@@ -3875,8 +3974,6 @@
       }
       if (event.target.id === "create-less-players") { draft.players = Math.max(1, draft.players - 1); renderDraft(); }
       if (event.target.id === "create-more-players") { draft.players = Math.min(PLAYER_MAX, draft.players + 1); renderDraft(); }
-      if (event.target.id === "create-less-manches") { draft.manches = Math.max(1, draft.manches - 1); renderDraft(); }
-      if (event.target.id === "create-more-manches") { draft.manches = Math.min(MANCHE_MAX, draft.manches + 1); renderDraft(); }
       if (event.target.closest("#create-dice")) {
         if (!draft.online) {
           draft.mode = draft.mode === "physical" ? "virtual" : "physical";
@@ -3959,24 +4056,19 @@
         addManche();
         return;
       }
+      if (event.target.id === "podium-leave") {
+        quitMatch();
+        return;
+      }
       if (event.target.id === "reset-top") openDialog();
       if (event.target.id === "reset-confirm") clearMatch();
       if (event.target.id === "dialog-cancel") closeDialog();
-      if (event.target.id === "tutorial-skip") finishTutorial();
-      if (event.target.id === "tutorial-next") {
-        if (tutorialStep >= TUTORIAL.length - 1) finishTutorial();
-        else {
-          tutorialStep += 1;
-          paintTutorial();
-        }
-      }
       if (event.target.id === "bar-yes" && barPending) {
         const run = barPending;
         closeBar();
         run();
       }
       if (event.target.id === "bar-no") closeBar();
-      if (event.target.id === "podium-close") closePodium();
       if (event.target.id === "dialog") closeDialog();
     });
 

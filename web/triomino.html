@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <script src="updater.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Triomino</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+  <section id="play" class="hidden">
+    <p class="status" id="status"></p>
+    <div class="tabs" id="scores"></div>
+    <div id="deal-box" hidden>
+      <p class="lead" id="deal-count"></p>
+      <div class="trio-pile trio-deal" id="deal-tiles"></div>
+      <div class="stack">
+        <button type="button" class="primary" id="deal-go" disabled>Piocher</button>
+      </div>
+    </div>
+    <div class="trio-stage">
+      <p class="board-name" id="board-name" hidden></p>
+      <div class="trio-board" id="board"></div>
+    </div>
+    <div class="trio-tools">
+      <button type="button" id="show-hand" hidden>Mes tuiles</button>
+      <button type="button" id="show-board" aria-pressed="false">Plateau</button>
+      <button type="button" id="zoom-out" aria-label="Dézoomer">−</button>
+      <button type="button" id="zoom-fit" aria-label="Voir tout le plateau">Tout</button>
+      <button type="button" id="zoom-in" aria-label="Zoomer">+</button>
+      <button type="button" id="draw" hidden>Piocher (−5)</button>
+    </div>
+    <div class="trio-hand" id="hand"></div>
+    <div class="stack" id="actions">
+      <button type="button" class="primary" id="place" hidden>Poser</button>
+      <button type="button" id="lift" hidden>Reprendre</button>
+      <button type="button" id="again" hidden>Rejouer</button>
+      <button type="button" class="ghost" id="leave" hidden>Quitter</button>
+    </div>
+    <div id="round-totals" class="round-totals" hidden></div>
+  </section>
+  </main>
+  <svg class="trio-defs" aria-hidden="true" width="0" height="0">
+    <defs>
+      <linearGradient id="trio-red" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#d24a3c"></stop>
+        <stop offset="0.55" stop-color="#b4232c"></stop>
+        <stop offset="1" stop-color="#7e1620"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
+  <div class="overlay hidden" id="mine">
+    <div class="card">
+      <strong>Mes tuiles</strong>
+      <p>Choisis la tuile à poser.</p>
+      <div class="trio-pile" id="mine-tiles"></div>
+      <div class="stack">
+        <button type="button" id="mine-close">Fermer</button>
+      </div>
+    </div>
+  </div>
+  <div class="overlay hidden" id="pile">
+    <div class="card">
+      <strong>Pioche</strong>
+      <p id="pile-copy">Choisis une tuile. Les chiffres restent cachés.</p>
+      <div class="trio-pile" id="pile-tiles"></div>
+      <div class="stack">
+        <button type="button" class="primary" id="pile-go" disabled>Piocher</button>
+        <button type="button" id="pile-close">Annuler</button>
+      </div>
+    </div>
+  </div>
+  <div class="overlay hidden" id="opening">
+    <div class="card">
+      <strong id="opening-title">Ça commence</strong>
+      <div class="trio-opening" id="opening-tiles"></div>
+      <div class="opening-bar" id="opening-bar" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script src="triomino.js"></script>
+</body>
+</html>

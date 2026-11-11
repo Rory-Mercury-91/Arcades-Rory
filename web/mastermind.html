@@ -18,15 +18,24 @@
       <p class="status" id="status"></p>
       <button type="button" class="help-btn" id="hint-help" aria-expanded="false" aria-label="Lire les indices">?</button>
     </div>
-    <p class="legend" id="hint-legend" hidden>Pion rouge : bonne couleur et bien placée. Pion blanc : bonne couleur, mal placée. L'ordre de ces pions ne désigne pas une case.</p>
+    <p class="legend" id="hint-legend" hidden>Pion rouge : bonne couleur et bien placée. Pion blanc : bonne couleur, mal placée. L'ordre de ces pions ne désigne pas une case. À deux, celui qui a posé le code place ces pions.</p>
+    <div id="secret-row" class="secret-row hidden">
+      <p class="lead">Ton code</p>
+      <div id="secret-pegs" class="pegs"></div>
+    </div>
     <div id="history"></div>
     <div id="reveal" class="pegs"></div>
+    <div id="mark-box" class="stack hidden">
+      <p class="lead">Place les indices</p>
+      <div id="mark-pegs" class="mark-edit"></div>
+      <button type="button" class="primary" id="mark-send">Valider les indices</button>
+    </div>
     <div class="row" id="draft"></div>
     <div class="row" id="palette"></div>
     <div class="stack" style="margin-top:12px">
       <button type="button" class="primary" id="send">Valider</button>
       <button type="button" id="again">Rejouer</button>
-      <button type="button" class="ghost" id="leave">Quitter</button>
+      <button type="button" class="ghost" id="leave" hidden>Quitter</button>
     </div>
   </section>
   </main>

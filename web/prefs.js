@@ -1,8 +1,9 @@
-/* Nom, thème et suivi de feuille. Lu avant les feuilles de style. */
+/* Nom, thème, suivi de feuille et place des tuiles. Lu avant les feuilles de style. */
 (function () {
   const NAME_KEY = "arcade-player-name";
   const THEME_KEY = "arcade-theme";
   const FOLLOW_KEY = "yams-follow-sheet";
+  const HAND_KEY = "triomino-hand-place";
   const LIGHT = "#efe6d8";
   const DARK = "#171410";
 
@@ -64,6 +65,16 @@
     catch (error) { /* stockage refusé */ }
   }
 
+  function handPlace() {
+    try { return localStorage.getItem(HAND_KEY) === "modal" ? "modal" : "board"; }
+    catch (error) { return "board"; }
+  }
+
+  function setHandPlace(place) {
+    try { localStorage.setItem(HAND_KEY, place === "modal" ? "modal" : "board"); }
+    catch (error) { /* stockage refusé */ }
+  }
+
   applyTheme(theme());
   document.addEventListener("DOMContentLoaded", () => applyTheme(theme()));
 
@@ -83,5 +94,5 @@
     window.addEventListener("yams-resume", fire);
   }
 
-  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet, onResume };
+  window.Prefs = { playerName, setPlayerName, theme, setTheme, followSheet, setFollowSheet, handPlace, setHandPlace, onResume };
 })();

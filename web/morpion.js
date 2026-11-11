@@ -54,6 +54,13 @@ const match = Arcade.mountMatch({
   game: "morpion",
   board: "board",
   settings: morpionSettings,
+  rules() {
+    return [
+      ["But", "Aligne trois de tes signes. X commence."],
+      ["Manche", "+1 relance une partie avec les mêmes joueurs. Les résultats restent dans Évolution, sur ce téléphone."]
+    ];
+  },
+  guide: morpionSteps,
   onReset() { leaveTable(); },
   onLeave() { leaveTable(); },
   onLocal() { startLocal(); },
@@ -138,6 +145,34 @@ function paint(cells, text) {
   grid.innerHTML = cells.map((cell, index) => {
     return `<button type="button" class="xo" data-i="${index}">${cell || ""}</button>`;
   }).join("");
+  maybeGuide();
+}
+
+function morpionSteps() {
+  return [
+    ...Arcade.gateTour((mode) => match.setWhere(mode), {
+      title: "Morpion",
+      text: "X commence. Trois signes alignés gagnent. Contre l'ordinateur, ou à deux sur ce téléphone.",
+      target: () => document.getElementById("step-create")
+    }, "En ligne, tu choisis X ou O. L'invitation avec le code s'affiche après la création."),
+    Object.assign(Arcade.chromeStep(), { page: "play" }),
+    {
+      page: "play",
+      title: "La grille",
+      render: Arcade.pictured(
+        "Touche une case libre. Trois signes alignés gagnent. X commence.",
+        `<div class="coach-xo"><span>X</span><span class="is-o">O</span><span></span><span></span><span>X</span><span class="is-o">O</span><span class="is-next"></span><span></span><span></span></div>`
+      ),
+      target: () => document.getElementById("grid")
+    },
+    Arcade.lobbyStep()
+  ];
+}
+
+function maybeGuide() {
+  const over = local ? Boolean(winnerOf(local.cells)) : Boolean(remote && remote.phase === "done");
+  const playing = local ? !over : Boolean(remote && remote.phase === "play");
+  Arcade.playGuide("morpion-tutorial", morpionSteps, playing);
 }
 
 function localText() {
@@ -211,7 +246,7 @@ function remoteText(state) {
 net = Arcade.room("morpion", (state) => {
   local = null;
   remote = state;
-  shell.setOnline(true);
+  shell.setOnline(true, state.code);
   if (state.phase === "lobby") {
     wasDone = false;
     Arcade.announceOnce("morpion", false, "");
