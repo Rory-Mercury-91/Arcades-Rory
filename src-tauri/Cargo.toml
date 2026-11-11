@@ -1,7 +1,7 @@
 [package]
 name = "yams"
-version = "0.1.27"
-description = "Feuille de Yams"
+version = "0.1.28"
+description = "Arcade de jeux"
 authors = ["Rory Mercury 91"]
 edition = "2021"
 

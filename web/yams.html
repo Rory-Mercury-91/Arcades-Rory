@@ -815,12 +815,42 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .row-total .num {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: transparent;
+      text-align: center;
+    }
+
     .row-bonus.is-won {
       background: var(--bonus-bg);
       color: var(--bonus);
     }
 
     .row-bonus.is-won small { color: var(--bonus); }
+
+    .row-bonus.is-lost .total-copy strong,
+    .row-bonus.is-lost .total-copy small {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .row-bonus.is-lost .num {
+      color: var(--muted);
+      background-color: transparent;
+      background-image: linear-gradient(
+        to top right,
+        transparent calc(50% - 1px),
+        var(--muted) calc(50% - 1px),
+        var(--muted) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      );
+    }
 
     .row-score {
       margin-top: 10px;
@@ -978,11 +1008,24 @@
     .dialog-card h2 { margin: 0 0 6px; font-size: 22px; }
     .dialog-card p { margin: 0 0 12px; color: var(--muted); }
 
+    #rules-dialog .dialog-card {
+      display: flex;
+      flex-direction: column;
+      max-height: min(440px, 68dvh);
+      overflow: hidden;
+    }
+
+    #rules-dialog .dialog-card h2,
+    #rules-dialog .btn { flex: none; }
+
+    #rules-body {
+      min-height: 0;
+      overflow: auto;
+    }
+
     .rules {
-      max-height: min(58vh, 460px);
       margin: 0 0 4px;
       padding: 0;
-      overflow: auto;
       list-style: none;
     }
 
@@ -1194,7 +1237,12 @@
       margin-top: 10px;
     }
 
-    .hint-chip { padding: 0 10px; }
+    .hint-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+    }
 
     .hint-chip.is-best {
       background: var(--score-bg);
@@ -1637,19 +1685,22 @@
   <div class="dialog is-center" id="rules-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="rules-title">
       <h2 id="rules-title">Règles</h2>
-      <p>Cinq dés, jusqu'à trois lancers. On garde les dés utiles, puis on remplit une seule case. Le plus haut total gagne.</p>
-      <ul class="rules">
-        <li><strong>As à Six.</strong> La somme des dés de cette face. Bonus de 35 si ce total atteint 63.</li>
-        <li><strong>Brelan.</strong> Au moins trois dés identiques : la somme des cinq dés.</li>
-        <li><strong>Carré.</strong> Au moins quatre dés identiques : la somme des cinq dés.</li>
-        <li><strong>Full.</strong> Trois dés d'une face et deux d'une autre : 25 points.</li>
-        <li><strong>Petite suite.</strong> Quatre dés qui se suivent : 30 points.</li>
-        <li><strong>Grande suite.</strong> Cinq dés qui se suivent : 40 points.</li>
-        <li><strong>Yams.</strong> Cinq dés identiques : 50 points.</li>
-        <li><strong>Chance.</strong> La somme des cinq dés.</li>
-        <li><strong>Barrer.</strong> Une case impossible compte zéro. Chaque case ne se remplit qu'une fois. La feuille est finie quand elles le sont toutes.</li>
-      </ul>
-      <button type="button" class="btn primary" id="rules-close">Fermer</button>
+      <div id="rules-body">
+        <p>Cinq dés, jusqu'à trois lancers. On garde les dés utiles, puis on remplit une seule case. Le plus haut total gagne.</p>
+        <ul class="rules">
+          <li><strong>As à Six.</strong> La somme des dés de cette face. Bonus de 35 si ce total atteint 63.</li>
+          <li><strong>Brelan.</strong> Au moins trois dés identiques : la somme des cinq dés.</li>
+          <li><strong>Carré.</strong> Au moins quatre dés identiques : la somme des cinq dés.</li>
+          <li><strong>Full.</strong> Trois dés d'une face et deux d'une autre : 25 points.</li>
+          <li><strong>Petite suite.</strong> Quatre dés qui se suivent : 30 points.</li>
+          <li><strong>Grande suite.</strong> Cinq dés qui se suivent : 40 points.</li>
+          <li><strong>Yams.</strong> Cinq dés identiques : 50 points.</li>
+          <li><strong>Chance.</strong> La somme des cinq dés.</li>
+          <li><strong>Barrer.</strong> Une case impossible compte zéro. Chaque case ne se remplit qu'une fois. La feuille est finie quand elles le sont toutes.</li>
+        </ul>
+      </div>
+      <button type="button" class="btn primary" id="rules-guide">Lancer l'aide</button>
+      <button type="button" class="btn text" id="rules-close">Fermer</button>
     </div>
   </div>
 
@@ -1980,6 +2031,7 @@
       const bonus = upper >= BONUS_THRESHOLD ? BONUS_POINTS : 0;
       const anyUpper = UPPER.some((cat) => player.scores[cat.id] !== "");
       let hint = BONUS_POINTS + " pts si le total ≥ " + BONUS_THRESHOLD;
+      let lost = false;
       if (anyUpper) {
         if (upper >= BONUS_THRESHOLD) {
           hint = BONUS_POINTS + " pts acquis";
@@ -1988,7 +2040,8 @@
             return sum + (player.scores[cat.id] === "" ? cat.max : 0);
           }, 0);
           const missing = BONUS_THRESHOLD - upper;
-          hint = upper + remaining < BONUS_THRESHOLD
+          lost = upper + remaining < BONUS_THRESHOLD;
+          hint = lost
             ? BONUS_POINTS + " pts hors de portée"
             : BONUS_POINTS + " pts si encore ≥ " + missing;
         }
@@ -1999,7 +2052,8 @@
         upperTotal: upper + bonus,
         lower,
         score: upper + bonus + lower,
-        hint
+        hint,
+        lost
       };
     }
 
@@ -2011,6 +2065,20 @@
     function dieMarkup(pips) {
       const dots = PIPS[pips].map((on) => `<i class="${on ? "on" : ""}"></i>`).join("");
       return `<span class="die" aria-hidden="true">${dots}</span>`;
+    }
+
+    // « 4 dans les » + le dé, pour ne pas lire « Quatre 2 ».
+    function hintChip(idea, best) {
+      const face = idea.pips ? dieMarkup(idea.pips) : "";
+      const spoken = idea.pips ? idea.label.toLowerCase() : idea.label;
+      if (idea.bar) {
+        const text = idea.pips ? "Barrer les " : "Barrer " + escapeHtml(idea.label);
+        const aria = idea.pips ? "Barrer les " + spoken : "Barrer " + idea.label;
+        return `<button type="button" class="hint-chip is-bar" data-mark="${idea.id}" data-bar="1" aria-label="${escapeHtml(aria)}">${text}${face}</button>`;
+      }
+      const text = idea.pips ? idea.points + " dans les " : escapeHtml(idea.label) + " " + idea.points;
+      const aria = idea.pips ? idea.points + " dans les " + spoken : idea.label + " " + idea.points;
+      return `<button type="button" class="hint-chip${best ? " is-best" : ""}" data-mark="${idea.id}" aria-label="${escapeHtml(aria)}">${text}${face}</button>`;
     }
 
     function scoreRow(playerIndex, cat) {
@@ -2481,8 +2549,21 @@
       });
     }
 
+    function markKept(held) {
+      const row = document.getElementById("dice-row");
+      if (!row || row.classList.contains("is-opening")) return;
+      row.querySelectorAll(".cube").forEach((cube, index) => {
+        const kept = Boolean(held[index]);
+        cube.classList.toggle("is-held", kept);
+        cube.setAttribute("aria-pressed", kept ? "true" : "false");
+      });
+    }
+
     async function concealRoll(faces, held, rolls) {
       const epoch = ++rollEpoch;
+      // Les dés gardés sont connus avec le lancer : on les fige avant le tournoiement.
+      dice.held = held.slice();
+      markKept(held);
       dice.busy = true;
       const status = document.getElementById("dice-status");
       if (status) status.textContent = playerName(room.turn) + " lance les dés…";
@@ -2850,21 +2931,16 @@
       const scores = playerIndex >= 0 ? sheetAt(playerIndex).scores : emptyScores();
       const open = ALL.filter((cat) => scores[cat.id] === "");
       const scored = physical || !dice.rolls ? [] : open.map((cat) => {
-        return { id: cat.id, label: cat.label, points: scoreFor(cat.id, dice.faces), bar: false };
+        return { id: cat.id, label: cat.label, pips: cat.pips || 0, points: scoreFor(cat.id, dice.faces), bar: false };
       }).filter((idea) => idea.points > 0).sort((a, b) => b.points - a.points);
       const lastRoll = !physical && dice.rolls >= 3;
       const ideas = !state.hints ? [] : (scored.length
         ? scored
-        : (lastRoll ? open.map((cat) => ({ id: cat.id, label: cat.label, bar: true })) : []));
+        : (lastRoll ? open.map((cat) => ({ id: cat.id, label: cat.label, pips: cat.pips || 0, bar: true })) : []));
       if (state.hints && mine && lastRoll && ideas.some((idea) => idea.bar) && !room.error) {
         status.textContent = "Aucune combinaison possible : barre une case.";
       }
-      document.getElementById("dice-hints").innerHTML = mine ? ideas.map((idea, index) => {
-        if (idea.bar) {
-          return `<button type="button" class="hint-chip is-bar" data-mark="${idea.id}" data-bar="1">Barrer ${escapeHtml(idea.label)}</button>`;
-        }
-        return `<button type="button" class="hint-chip${index === 0 ? " is-best" : ""}" data-mark="${idea.id}">${escapeHtml(idea.label)} ${idea.points}</button>`;
-      }).join("") : "";
+      document.getElementById("dice-hints").innerHTML = mine ? ideas.map((idea, index) => hintChip(idea, index === 0)).join("") : "";
       document.getElementById("room-leave").hidden = !online || inLobby();
       syncNameField();
       const note = document.getElementById("room-note");
@@ -3672,7 +3748,9 @@
       panel.querySelector('[data-field="upper-total"]').textContent = String(result.upperTotal);
       panel.querySelector('[data-field="lower"]').textContent = String(result.lower);
       panel.querySelector('[data-field="score"]').textContent = String(result.score);
-      panel.querySelector(".row-bonus").classList.toggle("is-won", result.bonus > 0);
+      const bonusRow = panel.querySelector(".row-bonus");
+      bonusRow.classList.toggle("is-won", result.bonus > 0);
+      bonusRow.classList.toggle("is-lost", result.lost);
 
       const sheetTitle = panel.querySelector(".sheet-name");
       if (sheetTitle) sheetTitle.textContent = playerName(index);
@@ -3999,6 +4077,14 @@
       }
       if (event.target.closest("#rules-open")) {
         document.getElementById("rules-dialog").hidden = false;
+      }
+      if (event.target.id === "rules-guide") {
+        document.getElementById("rules-dialog").hidden = true;
+        try { localStorage.removeItem("yams-tutorial"); } catch (error) { /* stockage refusé */ }
+        try { sessionStorage.removeItem("arcade-help-from"); } catch (error) { /* stockage refusé */ }
+        if (typeof Arcade !== "undefined" && typeof Arcade.guideOn === "function") {
+          Arcade.guideOn("yams-tutorial", playGuideSteps, "all");
+        }
       }
       if (event.target.id === "rules-close" || event.target.id === "rules-dialog") {
         document.getElementById("rules-dialog").hidden = true;

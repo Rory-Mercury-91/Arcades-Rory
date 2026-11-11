@@ -183,6 +183,22 @@ button.table-code[hidden] { display: none !important; }
 }
 
 .dialog.is-center .dialog-card { padding: 18px 16px; }
+
+.dialog-card.is-sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: min(440px, 68dvh);
+  overflow: hidden;
+}
+
+.dialog-card.is-sheet h2,
+.dialog-card.is-sheet .btn { flex: none; }
+
+#rules-body {
+  min-height: 0;
+  overflow: auto;
+}
+
 .dialog-card h2 { margin: 0 0 6px; font-size: 22px; }
 .dialog-card p { margin: 0 0 12px; color: var(--muted); }
 

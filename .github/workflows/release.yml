@@ -136,14 +136,14 @@ jobs:
             echo "APK signe introuvable"
             exit 1
           fi
-          cp "$APK" "Yams_${VERSION}_android-universal.apk"
-          echo "file=Yams_${VERSION}_android-universal.apk" >> "$GITHUB_OUTPUT"
+          cp "$APK" "Arcade_${VERSION}_android-universal.apk"
+          echo "file=Arcade_${VERSION}_android-universal.apk" >> "$GITHUB_OUTPUT"
 
       - name: Publier la release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Yams ${{ github.ref_name }}
+          name: Arcade ${{ github.ref_name }}
           body: |
             APK universel signe : `${{ steps.apk.outputs.file }}`.
 

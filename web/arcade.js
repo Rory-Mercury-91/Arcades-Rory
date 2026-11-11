@@ -432,7 +432,7 @@ const Arcade = (() => {
       </div>
     </div>
     <div class="dialog is-center" id="rules-dialog" hidden>
-      <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="dialog-card is-sheet" role="dialog" aria-modal="true" aria-labelledby="rules-title">
         <h2 id="rules-title">Règles</h2>
         <div id="rules-body"></div>
         <button type="button" class="btn primary" id="rules-guide">Lancer l'aide</button>
@@ -552,6 +552,9 @@ const Arcade = (() => {
       };
     }
     document.getElementById("rules-close").onclick = () => { document.getElementById("rules-dialog").hidden = true; };
+    document.getElementById("rules-dialog").addEventListener("click", (event) => {
+      if (event.target.id === "rules-dialog") document.getElementById("rules-dialog").hidden = true;
+    });
     document.getElementById("rules-guide").onclick = () => {
       document.getElementById("rules-dialog").hidden = true;
       forgetFlag(options.game + "-tutorial");
