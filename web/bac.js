@@ -409,8 +409,39 @@ if (typeof document !== "undefined") {
       {
         page: "play",
         title: "La feuille",
-        render: Arcade.pictured("Une catégorie, une case. En bas, tu envoies tes réponses.", `<p class="coach-go">Valider mes réponses</p>`),
+        render: Arcade.pictured("Une catégorie, une case. En bas, tu envoies tes réponses, même incomplètes.", `<p class="coach-go">Valider mes réponses</p>`),
         target: () => document.getElementById("sheet")
+      },
+      {
+        page: "play",
+        title: "STOP",
+        render: Arcade.pictured(
+          "Si tout est rempli, STOP laisse une minute aux autres. Sur ce téléphone, on se passe l'écran : pas de STOP.",
+          `<p class="coach-go">STOP</p>`
+        ),
+        target: () => {
+          const stop = document.getElementById("stop");
+          if (stop && !stop.hidden) return stop;
+          return document.getElementById("submit") || document.getElementById("actions");
+        }
+      },
+      {
+        page: "play",
+        title: "Les votes",
+        render: Arcade.pictured(
+          "Chaque proposition des autres : V accepte, X refuse, Abs s'abstient. L'abstention ne compte pas.",
+          `<div class="coach-pair"><div class="sample"><span class="coach-token">V</span><span>Valider</span></div><div class="sample"><span class="coach-token is-mark">X</span><span>Refuser</span></div><div class="sample"><span class="coach-token">Abs</span><span>Abstention</span></div></div>`
+        ),
+        target: () => document.getElementById("sheet")
+      },
+      {
+        page: "play",
+        title: "Les points",
+        render: Arcade.pictured(
+          "Vide ou refusé : 0. Mot partagé : 5. Unique : 10. Seul à avoir répondu dans la colonne : 15.",
+          `<div class="coach-scores"><div><span>Partagé</span><strong>5</strong></div><div><span>Unique</span><strong>10</strong></div><div><span>Seul</span><strong>15</strong></div></div>`
+        ),
+        target: () => document.getElementById("scores")
       },
       Arcade.lobbyStep()
     ];

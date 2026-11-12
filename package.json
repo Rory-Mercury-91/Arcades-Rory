@@ -1,7 +1,7 @@
 {
   "name": "yams",
   "private": true,
-  "version": "0.1.28",
+  "version": "0.1.29",
   "description": "Arcade de jeux. La table partagée est propre à cette application.",
   "scripts": {
     "tauri": "tauri",
