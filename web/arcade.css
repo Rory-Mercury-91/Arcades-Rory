@@ -831,3 +831,117 @@ button[hidden] { display: none !important; }
     margin-right: auto;
   }
 }
+
+.bac-letter {
+  margin: 4px 0 8px;
+  text-align: center;
+  font-family: Georgia, "Palatino Linotype", Palatino, serif;
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+.bac-letter[hidden] { display: none !important; }
+.bac-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+.bac-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+.bac-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.bac-row input {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 18px;
+}
+.bac-row input:disabled {
+  opacity: 0.7;
+}
+.bac-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bac-answers li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.bac-prop {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bac-who {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.bac-word {
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.bac-word.is-out {
+  text-decoration: line-through;
+  color: var(--muted);
+  font-weight: 600;
+}
+.bac-pts {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 16px;
+}
+.bac-vote {
+  display: flex;
+  gap: 6px;
+}
+.bac-vote button {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-weight: 800;
+}
+.bac-vote button.is-on[data-vote="v"] {
+  background: var(--up);
+  border-color: var(--up);
+  color: #fffaf3;
+}
+.bac-vote button.is-on[data-vote="x"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.bac-vote button.is-on[data-vote=""] {
+  border-color: var(--ink);
+}

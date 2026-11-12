@@ -670,7 +670,8 @@ const Arcade = (() => {
     { id: "morpion", title: "Morpion", href: "morpion.html", text: "Trois cases alignées. À deux, ou contre l'ordinateur." },
     { id: "mastermind", title: "Mastermind", href: "mastermind.html", text: "Devine le code de quatre couleurs." },
     { id: "mines", title: "Démineur", href: "mines.html", text: "Un carré, des mines cachées. Seul ou chacun son tour." },
-    { id: "triomino", title: "Triomino", href: "triomino.html", text: "Des tuiles triangulaires à relier. De 2 à 5 joueurs." }
+    { id: "triomino", title: "Triomino", href: "triomino.html", text: "Des tuiles triangulaires à relier. De 2 à 5 joueurs." },
+    { id: "bac", title: "Petit Bac", href: "bac.html", text: "Une lettre, neuf catégories. À plusieurs, en ligne ou sur ce téléphone." }
   ];
 
   function gameTitle(id) {
@@ -852,7 +853,7 @@ const Arcade = (() => {
         },
         {
           title: "Choisir son jeu",
-          text: "Yams, Démineur, Morpion, Mastermind ou Triomino... Chaque jeu propose ses propres mécaniques et options de personnalisation pour s'adapter à vos envies du moment.",
+          text: "Yams, Démineur, Morpion, Mastermind, Triomino ou Petit Bac... Chaque jeu propose ses propres mécaniques et options de personnalisation pour s'adapter à vos envies du moment.",
           target: () => document.getElementById("hub-games"),
           prepare: () => showDoor("create")
         },
@@ -1156,7 +1157,7 @@ const Arcade = (() => {
 
   let coachRun = null;
 
-  const GUIDE_KEYS = ["arcade-hub-tour", "arcade-chrome-tour", "yams-tutorial", "morpion-tutorial", "mastermind-tutorial", "mines-tutorial", "triomino-tutorial"];
+  const GUIDE_KEYS = ["arcade-hub-tour", "arcade-chrome-tour", "yams-tutorial", "morpion-tutorial", "mastermind-tutorial", "mines-tutorial", "triomino-tutorial", "bac-tutorial"];
 
   function readFlag(key) {
     try { return localStorage.getItem(key) === "1"; } catch (error) { return true; }
