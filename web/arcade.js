@@ -671,7 +671,9 @@ const Arcade = (() => {
     { id: "mastermind", title: "Mastermind", href: "mastermind.html", text: "Devine le code de quatre couleurs." },
     { id: "mines", title: "Démineur", href: "mines.html", text: "Un carré, des mines cachées. Seul ou chacun son tour." },
     { id: "triomino", title: "Triomino", href: "triomino.html", text: "Des tuiles triangulaires à relier. De 2 à 5 joueurs." },
-    { id: "bac", title: "Petit Bac", href: "bac.html", text: "Une lettre, neuf catégories. À plusieurs, en ligne ou sur ce téléphone." }
+    { id: "bac", title: "Petit Bac", href: "bac.html", text: "Une lettre, neuf catégories. À plusieurs, en ligne ou sur ce téléphone." },
+    { id: "sudoku", title: "Sudoku", href: "sudoku.html", text: "La grille classique. Chiffres, lignes, colonnes et blocs." },
+    { id: "chatdoku", title: "Chat Doku", href: "chatdoku.html", text: "Des chats à poser : pas la même ligne, colonne, couleur, ni tout contre." }
   ];
 
   function gameTitle(id) {
@@ -853,7 +855,7 @@ const Arcade = (() => {
         },
         {
           title: "Choisir son jeu",
-          text: "Yams, Démineur, Morpion, Mastermind, Triomino ou Petit Bac... Chaque jeu propose ses propres mécaniques et options de personnalisation pour s'adapter à vos envies du moment.",
+          text: "Yams, Démineur, Morpion, Mastermind, Triomino, Petit Bac, Sudoku ou Chat Doku... Chaque jeu propose ses propres mécaniques et options de personnalisation pour s'adapter à vos envies du moment.",
           target: () => document.getElementById("hub-games"),
           prepare: () => showDoor("create")
         },
@@ -1157,7 +1159,7 @@ const Arcade = (() => {
 
   let coachRun = null;
 
-  const GUIDE_KEYS = ["arcade-hub-tour", "arcade-chrome-tour", "yams-tutorial", "morpion-tutorial", "mastermind-tutorial", "mines-tutorial", "triomino-tutorial", "bac-tutorial"];
+  const GUIDE_KEYS = ["arcade-hub-tour", "arcade-chrome-tour", "yams-tutorial", "morpion-tutorial", "mastermind-tutorial", "mines-tutorial", "triomino-tutorial", "bac-tutorial", "sudoku-tutorial", "chatdoku-tutorial"];
 
   function readFlag(key) {
     try { return localStorage.getItem(key) === "1"; } catch (error) { return true; }

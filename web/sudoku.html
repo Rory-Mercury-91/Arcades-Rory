@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <script src="updater.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Sudoku</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+  <section id="play" class="hidden">
+    <p class="status" id="status"></p>
+    <div class="doku-board is-sudo" id="grid"></div>
+    <div class="doku-pad" id="pad"></div>
+    <div class="stack" id="actions">
+      <button type="button" id="hint">Indice</button>
+      <button type="button" id="again">Rejouer</button>
+      <button type="button" class="ghost" id="leave" hidden>Quitter</button>
+    </div>
+  </section>
+  </main>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script src="doku.js"></script>
+  <script>Doku.mount("sudoku");</script>
+</body>
+</html>
