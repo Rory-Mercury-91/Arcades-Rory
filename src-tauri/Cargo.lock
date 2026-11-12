@@ -4608,7 +4608,7 @@ dependencies = [
 
 [[package]]
 name = "yams"
-version = "0.1.28"
+version = "0.1.30"
 dependencies = [
  "serde",
  "serde_json",

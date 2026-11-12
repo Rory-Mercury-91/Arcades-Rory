@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="prefs.js"></script>
+  <script src="updater.js"></script>
+  <meta name="theme-color" content="#efe6d8" media="(prefers-color-scheme: light)" data-slot="light">
+  <meta name="theme-color" content="#171410" media="(prefers-color-scheme: dark)" data-slot="dark">
+  <title>Petit Bac</title>
+  <script>if (/android/i.test(navigator.userAgent)) document.documentElement.classList.add("runtime-android");</script>
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="page" id="app">
+  <section id="play" class="hidden">
+    <p class="status" id="status"></p>
+    <div class="tabs" id="scores"></div>
+    <p class="bac-letter" id="letter" hidden></p>
+    <p class="lead" id="round-note"></p>
+    <div class="bac-sheet" id="sheet"></div>
+    <div class="stack" id="actions">
+      <button type="button" class="primary" id="submit" hidden>Valider mes réponses</button>
+      <button type="button" id="stop" hidden>STOP</button>
+      <button type="button" class="primary" id="ballot" hidden>Valider mes votes</button>
+      <button type="button" class="primary" id="next" hidden>Manche suivante</button>
+      <button type="button" id="again" hidden>Rejouer</button>
+      <button type="button" class="ghost" id="leave" hidden>Quitter</button>
+    </div>
+    <div id="round-totals" class="round-totals" hidden></div>
+  </section>
+  </main>
+  <script src="yams-config.js"></script>
+  <script src="arcade.js"></script>
+  <script src="bac.js"></script>
+</body>
+</html>
